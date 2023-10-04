@@ -1,19 +1,12 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../database');
-
-const Tariff = sequelize.define('Tariff', {
-    id_tariff: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    tariff_name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
-    },
-    tariff_price: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-});
+module.exports = function (sequelize, DataTypes) {
+    return sequelize.define('Tariff', {
+        tariff_name: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+            unique: true
+        },
+        tariff_price: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+})};
