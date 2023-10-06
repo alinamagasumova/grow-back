@@ -4,10 +4,6 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.STRING,
       allowNull: false
     },
-    // salon_adress: {
-    //   type: DataTypes.GEOGRAPHY('POINT'),
-    //   allowNull: false
-    // },
     salon_longitude: {
       type: DataTypes.DECIMAL,
       allowNull: false

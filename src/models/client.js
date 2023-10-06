@@ -30,19 +30,5 @@ module.exports = function (sequelize, DataTypes) {
     city: {
       type: DataTypes.STRING(15),
       allowNull: false
-    },
-    // master_id: {
-    //   type: DataTypes.INTEGER,
-    //   references: {
-    //     model: Master,
-    //     key: 'id_master',
-    //   }
-    // },
-    // submaster_id: {
-    //   type: DataTypes.INTEGER,
-    //   references: {
-    //     model: Submaster,
-    //     key: 'id_submaster',
-    //   }
-    // },
+    }
 })};

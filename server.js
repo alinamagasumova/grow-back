@@ -12,9 +12,8 @@ app.use(cors());
 app.use('/api', routing);
 // app.use('/auth', authRouting);
 
-// db.sequelize.authenticate()
-//     .then(()=>console.log('successfully connected to the database'))
-//     .catch(error => console.error('unable to connect to the database:', error));
+// db.sequelize.drop({force: true}).then(()=>console.log('dropped db')).catch(error => console.error('unable to sync models:', error));
+
 db.sequelize.sync({ force: true })
 .then(()=>console.log('dropped and resynced db'))
 .catch(error => console.error('unable to sync models:', error));
