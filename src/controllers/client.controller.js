@@ -1,8 +1,17 @@
-const client = require('../models/client');
-const sequelize = require('../database');
+const { models: { Client }} = require('../database');
 
-const getAllClients = (req, res) => {
-    
-}
+module.exports = { 
+    getAll: (req, res) => {
+        Client.findAll()
+        .then((data)=>res.status(200).send())
+        .catch(err=>console.error(err));
+    },
 
-module.exports = { getAllClients, };
+    registration: (req, res) => {
+
+    },
+
+    login: () => {
+
+    }
+};

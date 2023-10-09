@@ -20,20 +20,4 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.DATE,
       allowNull: false
     },
-    // tariff_id: {
-    //   type: DataTypes.INTEGER,
-    //   allowNull: false,
-    //   references: {
-    //     model: Tariff,
-    //     key: 'id_tariff',
-    //   }
-    // },
-    // tariff_status_id: {
-    //   type: DataTypes.INTEGER,
-    //   allowNull: false,
-    //   references: {
-    //     model: Tariff_status,
-    //     key: 'id_tariff_status',
-    //   }
-    // },
 })};

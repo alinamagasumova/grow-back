@@ -12,11 +12,4 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.INTEGER,
             allowNull: false
         },
-        // master_id: {
-        //     type: DataTypes.INTEGER,
-        //     references: {
-        //     model: Master,
-        //     key: 'id_master',
-        //     }
-        // },
 })};

@@ -6,6 +6,6 @@ module.exports = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process
   logging: false,
   define: {
     timestamps: false,
-    underscored: true
+    underscored: true,
   }
 });
