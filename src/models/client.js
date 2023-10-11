@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 module.exports = function (sequelize, DataTypes) { 
   return sequelize.define('Client', {
     first_name: {
@@ -11,8 +12,12 @@ module.exports = function (sequelize, DataTypes) {
     phone_number: {
       type: DataTypes.STRING(12),
       allowNull: false,
+      unique: true,
       validate: {
-        is: /\+7[0-9]{10}/
+        is: {
+          args: /\+7[0-9]{10}/,
+          msg: "Phone number should start with +7 and contain 11 numbers"
+        }
       }
     },
     email: {
@@ -20,15 +25,20 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: false,
       unique: true,
       validate: {
-        isEmail: true,
+        isEmail: {
+          args: true,
+          msg: "Not valid email",
+        }
       }
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      set(pwd) {
+        const salt = bcrypt.genSaltSync();
+        const hashed_pwd = bcrypt.hashSync(pwd, salt);
+        this.setDataValue('password', hashed_pwd);
+      }
     },
-    city: {
-      type: DataTypes.STRING(15),
-      allowNull: false
-    }
+    city: DataTypes.STRING(15),
 })};

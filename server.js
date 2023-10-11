@@ -4,7 +4,9 @@ const db = require('./src/models');
 const cors = require('cors');
 const routing = require('./src/routes');
 const auth_routes = require('./src/routes/auth.routes');
-const service = require('./src/models/service');
+const { init, drop } = require('./dbConfigs/db');
+const { support_init } = require('./dbConfigs/support_db');
+// const notification_init = require('./notification_db');
 
 const app = express();
 
@@ -13,10 +15,8 @@ app.use(cors());
 app.use('/api', routing);
 app.use('/auth', auth_routes);
 
-// db.sequelize.drop({force: true}).then(()=>console.log('dropped db')).catch(error => console.error('unable to sync models:', error));
-
-db.sequelize.sync({ force: true })
-    .then(()=>{console.log('dropped and resynced db');})
-    .catch(error => console.error('unable to sync models:', error));
-
+init(db);
+support_init();
+// notification_init();
+ 
 app.listen(process.env.PORT, ()=>console.log('server is running'));

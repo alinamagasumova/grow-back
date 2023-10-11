@@ -1,5 +1,5 @@
 const controllers = {};
 
-controllers.client = require('./client.controller');
+controllers.auth = require('./auth.controller');
 
 module.exports = controllers;

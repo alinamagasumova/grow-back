@@ -1,5 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../database');
+const {sequelize} = require('../../dbConfigs/db');
 const path = require('path');
 const fs = require('fs');
 const db = {};
@@ -31,32 +31,32 @@ m.Tariff.hasMany(m.Master, { foreignKey: { allowNull: false } });
 m.Master.belongsTo(m.Tariff, { foreignKey: { allowNull: false } });
 
 // master and tariff status
-m.Tariff_status.hasMany(m.Master);
-m.Master.belongsTo(m.Tariff_status);
+m.Tariff_status.hasMany(m.Master, { foreignKey: { allowNull: false } });
+m.Master.belongsTo(m.Tariff_status, { foreignKey: { allowNull: false } });
 
 // picture and master
-m.Picture.belongsTo(m.Master);
-m.Master.hasMany(m.Picture);
+m.Picture.belongsTo(m.Master, { foreignKey: { allowNull: false } });
+m.Master.hasMany(m.Picture, { foreignKey: { allowNull: false } });
 
 // product and master
-m.Product.belongsTo(m.Master);
-m.Master.hasMany(m.Product);
+m.Product.belongsTo(m.Master, { foreignKey: { allowNull: false } });
+m.Master.hasMany(m.Product, { foreignKey: { allowNull: false } });
 
 // master and calendar slot
 m.Master.hasMany(m.Calendar_slot);
 m.Calendar_slot.belongsTo(m.Master);
 
 // service and master
-m.Master.hasMany(m.Service);
-m.Service.belongsTo(m.Master);
+m.Master.hasMany(m.Service, { foreignKey: { allowNull: false } });
+m.Service.belongsTo(m.Master, { foreignKey: { allowNull: false } });
 
-// submaster and subservice
-m.Submaster.hasMany(m.Subservice);
-m.Subservice.belongsTo(m.Submaster);
+// submaster_subservices
+m.Submaster.belongsToMany(m.Subservice, { through: 'submaster_subservices' });
+m.Subservice.belongsToMany(m.Submaster, { through: 'submaster_subservices' });
 
-// submaster and master
-m.Master.hasMany(m.Submaster, { foreignKey: { allowNull: false } });
-m.Submaster.belongsTo(m.Master, { foreignKey: { allowNull: false } });
+// employment (master subamster)
+m.Master.belongsToMany(m.Submaster, { through: 'employments' });
+m.Submaster.belongsToMany(m.Master, { through: 'employments' });
 
 // subservice and service
 m.Service.hasMany(m.Subservice, { foreignKey: { allowNull: false } });
@@ -75,8 +75,8 @@ m.Product.belongsToMany(m.Appointment, { through: 'baskets' });
 m.Appointment.belongsToMany(m.Product, { through: 'baskets' })
 
 // appointment and client
-m.Client.hasMany(m.Appointment);
-m.Appointment.belongsTo(m.Client);
+m.Client.hasMany(m.Appointment, { foreignKey: { allowNull: false } });
+m.Appointment.belongsTo(m.Client, { foreignKey: { allowNull: false } });
 
 // appointment and calendar
 m.Calendar_slot.belongsTo(m.Appointment);
@@ -85,6 +85,5 @@ m.Appointment.hasOne(m.Calendar_slot);
 // appointment_subservice
 m.Appointment.belongsToMany(m.Subservice, { through: 'appointment_subservices' });
 m.Subservice.belongsToMany(m.Appointment, { through: 'appointment_subservices' });
-
 
 module.exports = db;

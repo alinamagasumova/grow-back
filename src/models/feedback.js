@@ -9,6 +9,9 @@ module.exports = function (sequelize, DataTypes) {
       }
     },
     feedback_description: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+      validate: {
+        len: [5, 100]
+      }
     },
-})};
+})}; 
