@@ -3,10 +3,11 @@ module.exports = function (sequelize, DataTypes) {
         tariff_name: {
             type: DataTypes.STRING(20),
             allowNull: false,
-            unique: true
+            defaultValue: 'Нет тарифа'
         },
         tariff_price: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false, 
+            defaultValue: 0
         },
 })};

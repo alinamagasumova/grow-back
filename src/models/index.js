@@ -27,16 +27,16 @@ m.Submaster.hasOne(m.Client);
 m.Client.belongsTo(m.Submaster);
 
 // master and tariff
-m.Tariff.hasMany(m.Master, { foreignKey: { allowNull: false } });
-m.Master.belongsTo(m.Tariff, { foreignKey: { allowNull: false } });
+m.Tariff.hasMany(m.Master);
+m.Master.belongsTo(m.Tariff);
 
 // master and tariff status
-m.Tariff_status.hasMany(m.Master, { foreignKey: { allowNull: false } });
-m.Master.belongsTo(m.Tariff_status, { foreignKey: { allowNull: false } });
+m.Tariff_status.hasMany(m.Master);
+m.Master.belongsTo(m.Tariff_status);
 
-// picture and master
-m.Picture.belongsTo(m.Master, { foreignKey: { allowNull: false } });
-m.Master.hasMany(m.Picture, { foreignKey: { allowNull: false } });
+// photo and master
+m.Photo.hasOne(m.Master);
+m.Master.belongsTo(m.Photo);
 
 // product and master
 m.Product.belongsTo(m.Master, { foreignKey: { allowNull: false } });
@@ -79,11 +79,22 @@ m.Client.hasMany(m.Appointment, { foreignKey: { allowNull: false } });
 m.Appointment.belongsTo(m.Client, { foreignKey: { allowNull: false } });
 
 // appointment and calendar
-m.Calendar_slot.belongsTo(m.Appointment);
-m.Appointment.hasOne(m.Calendar_slot);
+m.Calendar_slot.hasOne(m.Appointment, { foreignKey: { allowNull: false } });
+m.Appointment.belongsTo(m.Calendar_slot, { foreignKey: { allowNull: false } });
 
 // appointment_subservice
-m.Appointment.belongsToMany(m.Subservice, { through: 'appointment_subservices' });
-m.Subservice.belongsToMany(m.Appointment, { through: 'appointment_subservices' });
+// m.Appointment.belongsToMany(m.Subservice, { through: 'appointment_subservices' });
+// m.Subservice.belongsToMany(m.Appointment, { through: 'appointment_subservices' });
+
+m.Appointment.belongsTo(m.Subservice, { foreignKey: { allowNull: false } });
+m.Subservice.hasMany(m.Appointment, { foreignKey: { allowNull: false } });
+
+// product photo
+m.Product.belongsToMany(m.Photo, { through: 'product_photo' });
+m.Photo.belongsToMany(m.Product, { through: 'product_photo' });
+
+// salon photo
+m.Master.belongsToMany(m.Photo, { through: 'salon_photo' });
+m.Photo.belongsToMany(m.Master, { through: 'salon_photo' });
 
 module.exports = db;

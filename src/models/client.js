@@ -29,6 +29,9 @@ module.exports = function (sequelize, DataTypes) {
           args: true,
           msg: "Not valid email",
         }
+      },
+      set(mail) {
+        this.setDataValue('email', mail.toLowerCase());
       }
     },
     password: {
@@ -40,5 +43,8 @@ module.exports = function (sequelize, DataTypes) {
         this.setDataValue('password', hashed_pwd);
       }
     },
-    city: DataTypes.STRING(15),
+    city: {
+      type: DataTypes.STRING(15),
+      defaultValue: 'Москва',
+    }
 })};

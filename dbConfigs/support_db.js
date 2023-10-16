@@ -27,10 +27,11 @@ const Support_request = sequelize_support.define('support_request', {
 }, {
   updatedAt: 'status_updatedAt'
 });
+// sequelize_support.drop({force: true}).then(()=>console.log('dropped db')).catch(error => console.error('unable to sync models:', error));
 
 function support_init(sequelize=sequelize_support) {
   sequelize.sync({ alter: true })
-    .then(()=>{console.log('connection to support db successful');})
+    .then(()=>console.log('connection to support db successful'))
     .catch(error => console.log(error));
 }
 
