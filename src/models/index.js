@@ -17,14 +17,16 @@ db.sequelize = sequelize;
 
 // ASSOCIATIONS
 const m = sequelize.models;
-// , { foreignKey: { allowNull: false } }
+
 // client and master
-m.Master.hasOne(m.Client);
-m.Client.belongsTo(m.Master);
+// m.Master.hasOne(m.Client, { foreignKey: { allowNull: false }, onDelete: 'cascade' });
+// m.Client.belongsTo(m.Master );
+m.Client.hasOne(m.Master, { onDelete: 'cascade' });
+m.Master.belongsTo(m.Client );
 
 // client and submaster
-m.Submaster.hasOne(m.Client);
-m.Client.belongsTo(m.Submaster);
+m.Client.hasOne(m.Submaster, { onDelete: 'cascade' });
+m.Submaster.belongsTo(m.Client );
 
 // master and tariff
 m.Tariff.hasMany(m.Master);

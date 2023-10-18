@@ -15,12 +15,12 @@ async function push_statuses(status_model){
   values.forEach(val => {
     status_model.create({tariff_status: val});  
   });
-  console.log('statuses pushed');
-  await sequelize.query('ALTER TABLE masters ALTER COLUMN tariff_status_id SET DEFAULT 3');
+  const result = await sequelize.query('ALTER TABLE masters ALTER COLUMN tariff_status_id SET DEFAULT 3');
+  if (result) console.log('statuses pushed');
 }
 
 async function init(db) {
-  db.sequelize.sync({ alter: true })
+  db.sequelize.sync({ alter : true })
     .then(()=>console.log('connection to main db successful'))
     .then(()=>{ return sequelize.models.Tariff_status.findAll() })
     .then(result=>{ if (result.length == 0) push_statuses(sequelize.models.Tariff_status) })

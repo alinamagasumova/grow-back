@@ -45,6 +45,7 @@ module.exports = function (sequelize, DataTypes) {
     },
     city: {
       type: DataTypes.STRING(15),
+      allowNull: false,
       defaultValue: 'Москва',
     }
-})};
+}, { onDelete: 'cascade' })};
