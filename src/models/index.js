@@ -41,11 +41,11 @@ m.Photo.hasOne(m.Master);
 m.Master.belongsTo(m.Photo);
 
 // product and master
-m.Product.belongsTo(m.Master, { foreignKey: { allowNull: false } });
-m.Master.hasMany(m.Product, { foreignKey: { allowNull: false } });
+m.Master.hasMany(m.Product, { foreignKey: { allowNull: false }, onDelete: 'cascade' });
+m.Product.belongsTo(m.Master);
 
 // master and calendar slot
-m.Master.hasMany(m.Calendar_slot);
+m.Master.hasMany(m.Calendar_slot, { foreignKey: { allowNull: false }, onDelete: 'cascade' });
 m.Calendar_slot.belongsTo(m.Master);
 
 // service and master
@@ -65,12 +65,12 @@ m.Service.hasMany(m.Subservice, { foreignKey: { allowNull: false } });
 m.Subservice.belongsTo(m.Service, { foreignKey: { allowNull: false } });
 
 // favourites
-m.Client.belongsToMany(m.Master, { through: 'favourites' });
-m.Master.belongsToMany(m.Client, { through: 'favourites' });
+m.Client.belongsToMany(m.Master, { through: 'favourites', as: 'favourite' });
+m.Master.belongsToMany(m.Client, { through: 'favourites', as: 'favourited' });
 
 // feedback
-m.Client.belongsToMany(m.Master, { through: m.Feedback });
-m.Master.belongsToMany(m.Client, { through: m.Feedback });
+m.Client.belongsToMany(m.Master, { through: { model: m.Feedback, unique: false} });
+m.Master.belongsToMany(m.Client, { through: { model: m.Feedback, unique: false} });
 
 // basket
 m.Product.belongsToMany(m.Appointment, { through: 'baskets' });

@@ -2,6 +2,7 @@ module.exports = function (sequelize, DataTypes) {
   return sequelize.define('Appointment', {
     confirmed: {
       type: DataTypes.BOOLEAN,
-      allowNull: false
+      allowNull: false,
+      defaultValue: false
     },
 })};

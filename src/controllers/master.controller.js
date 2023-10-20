@@ -1,4 +1,4 @@
-const { models: { Master, Appointment, Product, Service, Subservice, Calendar_slot }} = require('../../dbConfigs/db').sequelize;
+const { models: { Master, Appointment, Product, Service, Subservice, Calendar_slot, Tariff_status, Tariff }} = require('../../dbConfigs/db').sequelize;
 function status_handler (res, status, msg='', err=false) {
     if (err) {
         console.log(err);
@@ -8,11 +8,61 @@ function status_handler (res, status, msg='', err=false) {
 
 class MasterController {
     // GET
-
+    async tariff_state (req, res) {
+        try {
+            const id_tariff = req.clientInfo.Master.TariffId;
+            const id_tariff_status = req.clientInfo.Master.TariffStatusId;
+            const status_result = await Tariff_status.findOne({where: {id : id_tariff_status}, attributes: ['tariff_status'], raw: true});
+            const tariff_result = await Tariff.findOne({where: {id : id_tariff}, attributes: ['tariff_name'], raw: true});
+            if (status_result && tariff_result) return res.status(200).json(Object.assign(tariff_result, status_result)); 
+        } catch (e) {
+            return status_handler(res, 400, 'Get error', e);
+        }
+    }
 
     // POST
-    
+    async create_service (req, res) {
+        try {
+            const id = req.clientInfo.Master.id;
+            const { service_name } = req.body;
+            const result = await Service.create({service_name: service_name, MasterId: id});
+            if (result) return status_handler(res, 201, 'Created successfully')
+        } catch (e) {
+            return status_handler(res, 400, 'Post error', e);
+        }
+    }
 
+    async create_subservice (req, res) {
+        try {
+            const { subservice_name, price, id_service } = req.body;
+            const result = await Subservice.create({ subservice_name: subservice_name, ServiceId: id_service, subservice_price: price });
+            if (result) return status_handler(res, 201, 'Created successfully')
+        } catch (e) {
+            return status_handler(res, 400, 'Post error', e);
+        }
+    }
+
+    async create_product (req, res) {
+        try {
+            const id = req.clientInfo.Master.id;
+            const { product_name, description, price } = req.body;
+            const result = await Product.create({ product_name: product_name, MasterId: id, product_price: price, product_description: description });
+            if (result) return status_handler(res, 201, 'Created successfully')
+        } catch (e) {
+            return status_handler(res, 400, 'Post error', e);
+        }
+    }
+
+    async create_slot (req, res) {
+        try {
+            const id = req.clientInfo.Master.id;
+            const { date, time } = req.body;
+            const result = await Calendar_slot.create({date: date, time: time, MasterId: id});
+            if (result) return status_handler(res, 201, 'Created successfully')
+        } catch (e) {
+            return status_handler(res, 400, 'Post error', e);
+        }
+    }
     // PUT
 
 

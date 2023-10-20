@@ -48,7 +48,6 @@ class AuthController {
                     client_info[key] = this_client[key];
                 }
             });
-            delete client_info.Master.dataValues.ClientId;
             let access_token = jwt.sign(client_info, process.env.ACCESS_TOKEN, {expiresIn: '7d'});
             return res.status(200).json({ access_token: access_token}); 
         } catch (e) {

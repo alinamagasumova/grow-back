@@ -3,13 +3,13 @@ const { master } = require('../controllers');
 const verify_token = require('../middleware/verify_token');
 
 // GET
-router.get('/')
+router.get('/tariff', verify_token, master.tariff_state);
 
 // POST
-// router.post('/createService', verify_token, master.create_service)
-// router.post('/createSlot', verify_token, master.create_slot)
-// router.post('/createSubservice', verify_token, master.create_subservice)
-// router.post('/createProduct', verify_token, master.create_product)
+router.post('/createService', verify_token, master.create_service);
+router.post('/createSlot', verify_token, master.create_slot);
+router.post('/createSubservice', verify_token, master.create_subservice);
+router.post('/createProduct', verify_token, master.create_product);
 
 // PUT
 // router.put('/update', verify_token, master.update_salon);
