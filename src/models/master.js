@@ -23,6 +23,6 @@ module.exports = function (sequelize, DataTypes) {
     active_till: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: 0
+      defaultValue: new Date()
     },
 })};

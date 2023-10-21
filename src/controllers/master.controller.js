@@ -13,8 +13,9 @@ class MasterController {
             const id_tariff = req.clientInfo.Master.TariffId;
             const id_tariff_status = req.clientInfo.Master.TariffStatusId;
             const status_result = await Tariff_status.findOne({where: {id : id_tariff_status}, attributes: ['tariff_status'], raw: true});
-            const tariff_result = await Tariff.findOne({where: {id : id_tariff}, attributes: ['tariff_name'], raw: true});
-            if (status_result && tariff_result) return res.status(200).json(Object.assign(tariff_result, status_result)); 
+            let tariff = await Tariff.findOne({where: {id : id_tariff}, attributes: ['tariff_name'], raw: true});
+            if (!tariff) tariff = { tariff: 'none'};
+            if (status_result && tariff) return res.status(200).json(Object.assign(tariff, status_result)); 
         } catch (e) {
             return status_handler(res, 400, 'Get error', e);
         }
@@ -63,8 +64,69 @@ class MasterController {
             return status_handler(res, 400, 'Post error', e);
         }
     }
-    // PUT
 
+    // PUT
+    async update_salon (req, res) {
+        try {
+            const { data } = req.body;
+            const id = req.clientInfo.Master.id;
+            const result = await Master.update(data, { where: { id: id } });
+            if (result) return status_handler(res, 201, 'Updated successfully');
+        } catch (e) {
+            status_handler(res, 400, 'PUT error', e);
+        }
+    }
+
+    async update_service (req, res) {
+        try {
+            const { data, id_service } = req.body;
+            const result = await Service.update(data, { where: { id: id_service } });
+            if (result) return status_handler(res, 201, 'Updated successfully');
+        } catch (e) {
+            status_handler(res, 400, 'PUT error', e);
+        }
+    }
+
+    async update_subservice (req, res) {
+        try {
+            const { data, id_subservice } = req.body;
+            const result = await Subservice.update(data, { where: { id: id_subservice } });
+            if (result) return status_handler(res, 201, 'Updated successfully');
+        } catch (e) {
+            status_handler(res, 400, 'PUT error', e);
+        }
+    }
+
+    async update_product (req, res) {
+        try {
+            const { data, id_product } = req.body;
+            const result = await Product.update(data, { where: { id: id_product } });
+            if (result) return status_handler(res, 201, 'Updated successfully');
+        } catch (e) {
+            status_handler(res, 400, 'PUT error', e);
+        }
+    }
+
+    async update_slot (req, res) {
+        try {
+            const { status, id_slot } = req.body;
+            const result = await Calendar_slot.update(status, { where: { id: id_slot } });
+            if (result) return status_handler(res, 201, 'Updated successfully');
+        } catch (e) {
+            status_handler(res, 400, 'PUT error', e);
+        }
+    }
+
+    async update_appointment (req, res) {
+        try {
+            const { status, id_appointment } = req.body;
+            const result = await Appointment.update(status, { where: { id: id_appointment } });
+            // notificatiom for client
+            if (result) return status_handler(res, 201, 'Updated successfully');
+        } catch (e) {
+            status_handler(res, 400, 'PUT error', e);
+        }
+    }
 
     // DELETE
     async delete (req, res) {

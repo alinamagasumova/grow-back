@@ -12,12 +12,12 @@ router.post('/createSubservice', verify_token, master.create_subservice);
 router.post('/createProduct', verify_token, master.create_product);
 
 // PUT
-// router.put('/update', verify_token, master.update_salon);
-// router.put('/updateSubservice', verify_token, master.update_subservice);
-// router.put('/updateService', verify_token, master.update_service);
-// router.put('/updateSlotStatus', verify_token, master.update_slot);
-// router.put('/updateAppointmentStatus', verify_token, master.update_appointment);
-// router.put('/updateProduct', verify_token, master.update_product);
+router.put('/update', verify_token, master.update_salon);
+router.put('/updateSubservice', verify_token, master.update_subservice);
+router.put('/updateService', verify_token, master.update_service);
+router.put('/updateSlotStatus', verify_token, master.update_slot);
+router.put('/updateAppointmentStatus', verify_token, master.update_appointment);
+router.put('/updateProduct', verify_token, master.update_product);
 
 // DELETE
 router.delete('/delete', verify_token, master.delete);

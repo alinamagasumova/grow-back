@@ -29,7 +29,7 @@ class ClientController {
     async favourites(req, res) {
         try {
             const id = req.clientInfo.id;
-            const result = await Client.findAll({where: {id: id}, include: [{model: Master, as: 'favourite', attributes: ['salon_name', 'salon_longitude', 'salon_latitude']}]})
+            const result = await Client.findAll({ where: { id: id }, include: [{ model: Master, as: 'favourite', attributes: ['salon_name', 'salon_longitude', 'salon_latitude'] }]})
             let parsed_data = JSON.parse(JSON.stringify(result))[0].favourite;
             if (parsed_data.length == 0) return status_handler(res, 404, 'no favourites')
             Object.keys(parsed_data).forEach(idx => {
@@ -52,17 +52,16 @@ class ClientController {
     //     }
     // }
 
-    // async basket(req, res) {
-    //     try {
-    //         const id = req.clientInfo.id;
-    //         const appointment_id = req.body.appointment_id;
-    //         const basket = Basket.findAll({where: {client_id: id}});
-    //         console.log(appointments_list);
-    //         if (appointments_list) return res.status(200).json({appointment_list: appointments_list});  
-    //     } catch (e) {
-    //         status_handler(res, 400, 'GET error', e);
-    //     }
-    // }
+    async basket(req, res) {
+        try {
+            const { id_appointment } = req.body;
+            const basket_elements = await baskets.findAll({where: { AppointmentId: id_appointment }, rawData: true});
+            console.log(basket_elements);
+            if (basket_elements) return res.status(200).json({basket_elements});  
+        } catch (e) {
+            status_handler(res, 400, 'GET error', e);
+        }
+    }
 
     //  POST
     async add_master(req, res) {
@@ -93,6 +92,7 @@ class ClientController {
         try {
             const { id_master, id_slot, id_subservice, id_products } = req.body;
             const id = req.clientInfo.id;
+
             if (req.clientInfo.Master && id_master == req.clientInfo.Master.id) return status_handler(res, 400, 'You can not make an appointment to yourself')
             const result = await Appointment.create({ ClientId: id, SubserviceId: id_subservice, CalendarSlotId: id_slot });
             let basket_obj = [];
