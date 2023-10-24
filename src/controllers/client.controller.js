@@ -1,4 +1,4 @@
-const { models: { Client, baskets, Appointment, favourites, Feedback, Master }} = require('../../dbConfigs/db').sequelize;
+const { models: { Client, baskets, Appointment, favourites, Feedback, Master, Product, Subservice, Calendar_slot, Service }} = require('../../dbConfigs/db').sequelize;
 function status_handler (res, status, msg='', err=false) {
     if (err) {
         console.log(err);
@@ -41,23 +41,41 @@ class ClientController {
         }
     }
 
-    // async appointments(req, res) {
-    //     try {
-    //         const id = req.clientInfo.id;
-    //         const appointments_list = await Appointment.findOne({where: {client_id: id}});
-    //         console.log(appointments_list.getCalendarSlot());
-    //         if (appointments_list) return res.status(200).json({appointment_list: appointments_list});  
-    //     } catch (e) {
-    //         status_handler(res, 400, 'GET error', e);
-    //     }
-    // }
+    async appointments(req, res) {
+        try {
+            const id = req.clientInfo.id
+            const appointments = await Appointment.findAll({ where: { ClientId: id }, attributes: ['CalendarSlotId', 'id'], rawData: true });
+            let appointments_list = [];
+            for (const ap of appointments) {
+                let slot = await Calendar_slot.findOne({ where: { id: ap.CalendarSlotId }, attributes: ['date'], rawData: true });
+                if (new Date(slot.date) >= new Date().setHours(0)) appointments_list.push(ap.id);
+            };
+            if (appointments) return res.status(200).json(appointments_list);  
+        } catch (e) {
+            status_handler(res, 400, 'GET error', e);
+        }
+    }
+
+    async appointment(req, res) {
+        try {
+            const id = req.clientInfo.id
+            const { id_appointment } = req.body;
+            const appointment = await Appointment.findOne({ where: { id: id_appointment, ClientId: id }, attributes: ['confirmed', 'CalendarSlotId', 'SubserviceId'], rawData: true });
+            const slot = await Calendar_slot.findOne({ where: { id: appointment.CalendarSlotId }, attributes: ['date', 'time'], include: [{ model: Master, attributes: ['salon_name'] }], rawData: true });
+            const subservice = await Subservice.findOne({ where: { id: appointment.SubserviceId }, attributes: ['subservice_name', 'subservice_price'], include: [{ model: Service, attributes: ['service_name'] }], rawData: true });
+            appointment.CalendarSlotId = slot;
+            appointment.SubserviceId = subservice;
+            if (appointment) return res.status(200).json(appointment);  
+        } catch (e) {
+            status_handler(res, 400, 'GET error', e);
+        }
+    }
 
     async basket(req, res) {
         try {
             const { id_appointment } = req.body;
-            const basket_elements = await baskets.findAll({where: { AppointmentId: id_appointment }, rawData: true});
-            console.log(basket_elements);
-            if (basket_elements) return res.status(200).json({basket_elements});  
+            const basket_elements = await Appointment.findOne({ where: { id: id_appointment }, include: [{ model: Product, attributes: ['product_name', 'product_description', 'product_price'] }], rawData: true });
+            if (basket_elements) return res.status(200).json(basket_elements.Products);  
         } catch (e) {
             status_handler(res, 400, 'GET error', e);
         }
@@ -92,17 +110,23 @@ class ClientController {
         try {
             const { id_master, id_slot, id_subservice, id_products } = req.body;
             const id = req.clientInfo.id;
-
+            // checks
             if (req.clientInfo.Master && id_master == req.clientInfo.Master.id) return status_handler(res, 400, 'You can not make an appointment to yourself')
+            const checkBusy = await Calendar_slot.findOne({ where: { id: id_slot }, rawData: true });
+            if (checkBusy.busy) return status_handler(res, 400, 'Slot is busy');
+            // create appointment
             const result = await Appointment.create({ ClientId: id, SubserviceId: id_subservice, CalendarSlotId: id_slot });
+            // link and create basket
             let basket_obj = [];
             id_products.forEach(product => {
                 let new_product_obj = { ProductId: product, AppointmentId: result.id };
                 basket_obj.push(new_product_obj);
             });
             const basket_result = await baskets.bulkCreate(basket_obj, { validate: true, ignoreDuplicates: true });
+            // change slot state
+            const slot = await Calendar_slot.update({busy: true}, { where: { id: id_slot }});
             // notification to master
-            if (result && basket_result) return status_handler(res, 201, 'Made successfully');
+            if (result && basket_result && slot) return status_handler(res, 201, 'Made successfully');
         } catch (e) {
             status_handler(res, 400, 'Post error', e);
         }
@@ -143,9 +167,11 @@ class ClientController {
     async delete_appointment (req, res) {
         try {
             const { id_appointment } = req.body;
-            const result = await Appointment.destroy({ where: { id: id_appointment }});
+            const appointment = await Appointment.findOne({ where: { id: id_appointment }, attributes: ['CalendarSlotId'], rawData: true });
+            const result = await Appointment.destroy({ where: { id: id_appointment } });
+            const slot = await Calendar_slot.update({busy: false}, { where: { id: appointment.CalendarSlotId } });
             // notification for master
-            if (result) return status_handler(res, 200, 'Deleted successfully');  
+            if (result && slot) return status_handler(res, 200, 'Deleted successfully');  
         } catch (e) {
             status_handler(res, 400, 'Delete error', e);
         }

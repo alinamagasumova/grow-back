@@ -58,7 +58,10 @@ class MasterController {
         try {
             const id = req.clientInfo.Master.id;
             const { date, time } = req.body;
-            const result = await Calendar_slot.create({date: date, time: time, MasterId: id});
+            if (new Date(date) >= new Date().setHours(0)) { 
+                if (time <= new Date().toLocaleTimeString()) return status_handler(res, 400, 'invalid Time');
+            } else { return status_handler(res, 400, 'invalid Data') }
+            const result = await Calendar_slot.create({ date: date, time: time, MasterId: id });
             if (result) return status_handler(res, 201, 'Created successfully')
         } catch (e) {
             return status_handler(res, 400, 'Post error', e);
@@ -68,6 +71,7 @@ class MasterController {
     // PUT
     async update_salon (req, res) {
         try {
+            // what about changing tariff_status and tariff
             const { data } = req.body;
             const id = req.clientInfo.Master.id;
             const result = await Master.update(data, { where: { id: id } });
@@ -142,9 +146,11 @@ class MasterController {
     async delete_appointment (req, res) {
         try {
             const { id_appointment } = req.body;
-            const result = await Appointment.destroy({ where: { id: id_appointment }});
+            const appointment = await Appointment.findOne({ where: { id: id_appointment }, attributes: ['CalendarSlotId'], rawData: true });
+            const result = await Appointment.destroy({ where: { id: id_appointment } });
+            const slot = await Calendar_slot.update({busy: false}, { where: { id: appointment.CalendarSlotId } });
             // notification for client
-            if (result) return status_handler(res, 200, 'Deleted successfully');  
+            if (result && slot) return status_handler(res, 200, 'Deleted successfully');  
         } catch (e) {
             status_handler(res, 400, 'Delete error', e);
         }

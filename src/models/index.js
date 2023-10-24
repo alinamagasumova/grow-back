@@ -74,7 +74,7 @@ m.Master.belongsToMany(m.Client, { through: { model: m.Feedback, unique: false} 
 
 // basket
 m.Product.belongsToMany(m.Appointment, { through: 'baskets' });
-m.Appointment.belongsToMany(m.Product, { through: 'baskets' })
+m.Appointment.belongsToMany(m.Product, { through: 'baskets' });
 
 // appointment and client
 m.Client.hasMany(m.Appointment, { foreignKey: { allowNull: false } });
