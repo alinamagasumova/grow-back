@@ -78,14 +78,9 @@ class GetController {
 
     async feedbacks_from (req, res) {
         try {
-            const { id_master, idx_from, limit } = req.body;
-            const feedbacks = await Feedback.findAll({ where: { MasterId: id_master }, order: [['id', 'DESC']], rawData: true });
-            let feedback_from = [];
-            for (let i = idx_from; i < feedbacks.length; i++) {
-                if (feedback_from.length == limit) break
-                feedback_from.push(feedbacks[i]);
-            }
-            if (feedbacks) return res.status(200).json(feedback_from);
+            const { id_master, offset, limit } = req.body;
+            const feedbacks = await Feedback.findAll({ where: { MasterId: id_master }, order: [['id', 'DESC']], offset: offset, limit: limit, rawData: true });
+            if (feedbacks) return res.status(200).json(feedbacks);
         } catch (e) {
             status_handler(res, 400, 'GET error', e);
         }

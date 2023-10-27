@@ -48,6 +48,10 @@ m.Product.belongsTo(m.Master);
 m.Master.hasMany(m.Calendar_slot, { foreignKey: { allowNull: false }, onDelete: 'cascade' });
 m.Calendar_slot.belongsTo(m.Master);
 
+// master and dop
+m.Master.hasMany(m.Dop)
+m.Dop.belongsTo(m.Master)
+
 // service and master
 m.Master.hasMany(m.Service, { foreignKey: { allowNull: false } });
 m.Service.belongsTo(m.Master, { foreignKey: { allowNull: false } });

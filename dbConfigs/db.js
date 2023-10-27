@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const STATUS_VALUES = process.env.PAY_STATUS_VALUES.split(',');
-const TARIFF_VALUES = process.env.TARIFF_VALUES.split(',');
+const TARIFF_VALUES = JSON.parse(JSON.stringify(process.env.TARIFF_VALUES));
 
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
@@ -24,11 +24,12 @@ async function push_statuses(status_model) {
 
 async function push_tariffs(tariff_model) {
   const tariffs = await tariff_model.findAll();
+  let arr = [];
+  arr.push(TARIFF_VALUES)
+  console.log(typeof TARIFF_VALUES);
   if (tariffs.length != 0) return
-  TARIFF_VALUES.forEach(val => {
-     tariffs.create(TARIFF_VALUES, { validate: true })
-     .then(() => console.log(`tariff ${val.name} pushed`));
-  });
+  const result = tariff_model.bulkCreate(arr, { validate: true });
+  if (result) console.log(`tariffs pushed`);
 }
 
 async function init(db) {

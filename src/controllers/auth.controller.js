@@ -54,6 +54,30 @@ class AuthController {
             status_handler(res, 401, 'Login error', e);
         }
     }
+
+    async login_phone (req, res) {
+        try {
+            const { phone, code } = req.body;
+            const valid_code = req.valid_code;
+            console.log(valid_code);
+            const this_client = await Client.findOne({ where: {phone: phone}, include: [Master, Submaster]});
+            if (!this_client) return status_handler(res, 404, 'No sush user');
+            if (code != valid_code) return status_handler(res, 400, 'code is incorrect');
+
+            const keys = Object.keys(this_client.toJSON());
+            const doNotNeed = ['password'];
+            let client_info = {};
+            keys.forEach(key => {
+                if (!doNotNeed.includes(key)) {
+                    client_info[key] = this_client[key];
+                }
+            });
+            let access_token = jwt.sign(client_info, process.env.ACCESS_TOKEN, {expiresIn: '7d'});
+            return res.status(200).json({ access_token: access_token}); 
+        } catch (e) {
+            status_handler(res, 401, 'Login error', e);
+        }
+    }
 };
 
 module.exports = new AuthController();
