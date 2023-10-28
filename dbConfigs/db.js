@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
-const STATUS_VALUES = process.env.PAY_STATUS_VALUES.split(',');
-const TARIFF_VALUES = JSON.parse(JSON.stringify(process.env.TARIFF_VALUES));
+const zlib = require('zlib');
+const [TARIFF_VALUES, PAY_STATUS_VALUES] = require('./models_config');
 
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
@@ -15,7 +15,7 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 async function push_statuses(status_model) {
   const statuses = await status_model.findAll();
   if (statuses.length != 0) return
-  STATUS_VALUES.forEach(val => {
+  PAY_STATUS_VALUES.forEach(val => {
     status_model.create({tariff_status: val});  
   });
   const result = await sequelize.query('ALTER TABLE masters ALTER COLUMN tariff_status_id SET DEFAULT 3');
@@ -24,11 +24,8 @@ async function push_statuses(status_model) {
 
 async function push_tariffs(tariff_model) {
   const tariffs = await tariff_model.findAll();
-  let arr = [];
-  arr.push(TARIFF_VALUES)
-  console.log(typeof TARIFF_VALUES);
   if (tariffs.length != 0) return
-  const result = tariff_model.bulkCreate(arr, { validate: true });
+  const result = await tariff_model.bulkCreate(TARIFF_VALUES, { validate: true });
   if (result) console.log(`tariffs pushed`);
 }
 

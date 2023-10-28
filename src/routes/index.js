@@ -8,7 +8,7 @@ router.get('/feedback', get.feedback);
 router.get('/feedbacks', get.feedbacks_from);
 router.get('/dateSlots', get.date_slots);
 router.get('/monthStatuses', get.month_statuses);
-// router.get('/masters', get.masters);
+router.get('/masters', get.masters);
 router.get('/image', get.photo);
 
 module.exports = router;

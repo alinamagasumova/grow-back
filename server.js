@@ -20,7 +20,7 @@ app.use('/api/client', client_routes);
 app.use('/api/master', master_routes);
 
 init(db);
-support_init();
+// support_init();
 // notification_init();
  
 app.listen(process.env.PORT, ()=>console.log('server is running'));

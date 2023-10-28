@@ -120,15 +120,24 @@ class GetController {
         }
     }
 
-    // async masters (req, res) {
-    //     try {
-    //         const { left_top, right_bottom } = req.body;
-    //         const result = await Master.findAll({ where: { id: id }, attributes: ['id'], rawData: true });
-    //         if (result) return res.status(200).json(result);
-    //     } catch (e) {
-    //         status_handler(res, 400, 'GET error', e);
-    //     }
-    // }
+    async masters (req, res) {
+        try {
+            const { left_top, right_bottom } = req.body;
+            const latitude_LT = left_top[0];
+            const longitude_LT = left_top[1];
+            const latitude_RB = right_bottom[0];
+            const longitude_RB = right_bottom[1];
+            const result = await Master.findAll({ where: 
+                {
+                    salon_latitude: { [Op.and]: { [Op.gte]: latitude_RB, [Op.lte]: latitude_LT } },
+                    salon_longitude: { [Op.and]: { [Op.gte]: longitude_LT, [Op.lte]: longitude_RB } } 
+                }, attributes: ['id', 'salon_latitude', 'salon_longitude'], rawData: true });
+            if (result.length == 0) return status_handler(res, 404, 'no salons');
+            if (result) return res.status(200).json(result);
+        } catch (e) {
+            status_handler(res, 400, 'GET error', e);
+        }
+    }
 }
 
 module.exports = new GetController();

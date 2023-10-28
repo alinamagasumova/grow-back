@@ -71,7 +71,7 @@ class MasterController {
     // PUT
     async update_salon (req, res) {
         try {
-            // what about changing tariff_status and tariff
+            // what about changing tariff_status and tariff, photos of salon
             const { data } = req.body;
             const id = req.clientInfo.Master.id;
             const result = await Master.update(data, { where: { id: id } });
