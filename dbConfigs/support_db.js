@@ -1,4 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
+const { SUPPORT_STATUS_VALUES } = require('./models_config');
 
 const sequelize_support = new Sequelize(process.env.SUPPORT_DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
@@ -21,7 +22,7 @@ const Support_request = sequelize_support.define('support_request', {
     },
     status: {
       type: DataTypes.ENUM,
-      values: process.env.SUPPORT_STATUS_VALUES.split(','),
+      values: SUPPORT_STATUS_VALUES,
       allowNull: false
   },
 }, {
