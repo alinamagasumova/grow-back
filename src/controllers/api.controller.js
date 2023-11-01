@@ -5,9 +5,9 @@ function status_handler (res, status, msg='', err=false) {
         console.log(err);
     }
     return res.status(status).json({msg: msg});
-}
+};
 
-class GetController {
+class ApiController {
     async salon (req, res) {
         try {
             const { id_master } = req.body;
@@ -138,6 +138,7 @@ class GetController {
             status_handler(res, 400, 'GET error', e);
         }
     }
+
 }
 
-module.exports = new GetController();
+module.exports = new ApiController();

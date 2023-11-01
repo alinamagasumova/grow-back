@@ -1,5 +1,4 @@
 const Sequelize = require('sequelize');
-// const zlib = require('zlib');
 const { TARIFF_VALUES, PAY_STATUS_VALUES } = require('./models_config');
 
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {

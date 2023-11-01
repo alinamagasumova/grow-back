@@ -1,3 +1,4 @@
+const { Support_request } = require('../../dbConfigs/support_db');
 const { models: { Client, baskets, Appointment, favourites, Feedback, Master, Product, Subservice, Calendar_slot, Service }} = require('../../dbConfigs/db').sequelize;
 function status_handler (res, status, msg='', err=false) {
     if (err) {
@@ -129,6 +130,17 @@ class ClientController {
             if (result && basket_result && slot) return status_handler(res, 201, 'Made successfully');
         } catch (e) {
             status_handler(res, 400, 'Post error', e);
+        }
+    }
+
+    async send_support (req, res) {
+        try {
+            const id = req.clientInfo.id;
+            const { message } = req.body;
+            const result = await Support_request.create({ message: message, client_id: id });
+            if (result) return res.status(201).json(result);
+        } catch (e) {
+            status_handler(res, 400, 'POST error', e);
         }
     }
 

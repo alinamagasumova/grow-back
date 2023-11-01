@@ -13,7 +13,10 @@ const sequelize_support = new Sequelize(process.env.SUPPORT_DB_NAME, process.env
 const Support_request = sequelize_support.define('support_request', {
     message: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        validate: {
+          
+        }
     },
     client_id: {
         type: DataTypes.INTEGER,
@@ -23,7 +26,8 @@ const Support_request = sequelize_support.define('support_request', {
     status: {
       type: DataTypes.ENUM,
       values: SUPPORT_STATUS_VALUES,
-      allowNull: false
+      allowNull: false,
+      defaultValue: 'open'
   },
 }, {
   updatedAt: 'status_updatedAt'
