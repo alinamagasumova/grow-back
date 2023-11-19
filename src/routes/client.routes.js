@@ -10,18 +10,19 @@ router.get('/favourites', verify_token, client.favourites);
 router.get('/basket', verify_token, client.basket);
 
 // POST
-router.post('/addFavouriteMaster', verify_token, client.add_master);
-router.post('/postFeedback', verify_token, client.post_feedback);
-router.post('/makeAppointment', verify_token, client.make_appointment);
+router.post('/master', verify_token, client.add_master);
+router.post('/feedback', verify_token, client.post_feedback);
+router.post('/appointment', verify_token, client.make_appointment);
+router.post('/support', verify_token, client.send_support);
 
 // PUT
-router.put('/updateFeedback', verify_token, client.update_feedback);
+router.put('/feedback', verify_token, client.update_feedback);
 router.put('/update', verify_token, client.update_client);
 
 // DELETE
 router.delete('/delete', verify_token, client.delete);
-router.delete('/deleteAppointment', verify_token, client.delete_appointment);
-router.delete('/deleteFeedback', verify_token, client.delete_feedback);
-router.delete('/deleteFavouriteMaster', verify_token, client.delete_master);
+router.delete('/appointment', verify_token, client.delete_appointment);
+router.delete('/feedback', verify_token, client.delete_feedback);
+router.delete('/master', verify_token, client.delete_master);
 
 module.exports = router;

@@ -47,6 +47,8 @@ class MasterController {
         try {
             const id = req.clientInfo.Master.id;
             const { product_name, description, price } = req.body;
+            const products = await Product.findAll({ where: { MasterId: id }, rawData: true });
+            console.log(products.length);
             const result = await Product.create({ product_name: product_name, MasterId: id, product_price: price, product_description: description });
             if (result) return status_handler(res, 201, 'Created successfully')
         } catch (e) {

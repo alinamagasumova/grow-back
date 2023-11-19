@@ -1,14 +1,14 @@
 const router = require('express').Router();
-const { get } = require('../controllers');
+const { api } = require('../controllers');
 
-router.get('/salon', get.salon);
-router.get('/tariffs', get.tariffs);
-router.get('/masterRate', get.rate);
-router.get('/feedback', get.feedback);
-router.get('/feedbacks', get.feedbacks_from);
-router.get('/dateSlots', get.date_slots);
-router.get('/monthStatuses', get.month_statuses);
-router.get('/masters', get.masters);
-router.get('/image', get.photo);
+router.get('/salon', api.salon);
+router.get('/tariffs', api.tariffs);
+router.get('/masterRate', api.rate);
+router.get('/feedback', api.feedback);
+router.get('/feedbacks', api.feedbacks_from);
+router.get('/dateSlots', api.date_slots);
+router.get('/monthStatuses', api.month_statuses);
+router.get('/masters', api.masters);
+router.get('/image', api.photo);
 
 module.exports = router;
