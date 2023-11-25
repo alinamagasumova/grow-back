@@ -7,7 +7,7 @@ module.exports = function (sequelize, DataTypes) {
         presentDate(value) {
           if (new Date(value) < new Date().setHours(0)) {
             console.log(new Date(value), new Date());
-            throw new Error("invalid date");
+            throw new Error('invalid date');
           }
         },
       },
@@ -19,6 +19,7 @@ module.exports = function (sequelize, DataTypes) {
     busy: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: false,
     },
-})};
+  });
+};

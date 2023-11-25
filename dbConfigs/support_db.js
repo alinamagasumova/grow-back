@@ -7,37 +7,40 @@ const sequelize_support = new Sequelize(process.env.SUPPORT_DB_NAME, process.env
   logging: false,
   define: {
     underscored: true,
-  }
+  },
 });
 
-const Support_request = sequelize_support.define('support_request', {
+const Support_request = sequelize_support.define(
+  'support_request',
+  {
     message: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          
-        }
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {},
     },
     client_id: {
-        type: DataTypes.INTEGER,
-        unique: true,
-        allowNull: false
+      type: DataTypes.INTEGER,
+      unique: true,
+      allowNull: false,
     },
     status: {
       type: DataTypes.ENUM,
       values: SUPPORT_STATUS_VALUES,
       allowNull: false,
-      defaultValue: 'open'
+      defaultValue: 'open',
+    },
   },
-}, {
-  updatedAt: 'status_updatedAt'
-});
+  {
+    updatedAt: 'status_updatedAt',
+  }
+);
 // sequelize_support.drop({force: true}).then(()=>console.log('dropped db')).catch(error => console.error('unable to sync models:', error));
 
-function support_init(sequelize=sequelize_support) {
-  sequelize.sync({ alter: true })
-    .then(()=>console.log('connection to support db successful'))
-    .catch(error => console.log(error));
+function support_init(sequelize = sequelize_support) {
+  sequelize
+    .sync({ alter: true })
+    .then(() => console.log('connection to support db successful'))
+    .catch((error) => console.log(error));
 }
 
-module.exports = { support_init, Support_request};
+module.exports = { support_init, Support_request };

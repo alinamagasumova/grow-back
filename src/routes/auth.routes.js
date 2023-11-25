@@ -6,5 +6,4 @@ router.post('/loginEmail', auth.login_email);
 // router.post('/sendCode', auth.);
 // router.post('/verifyCode', auth.);
 
-
 module.exports = router;

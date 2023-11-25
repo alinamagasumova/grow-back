@@ -3,26 +3,27 @@ module.exports = function (sequelize, DataTypes) {
     job_description: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 'Описание работы'
+      defaultValue: 'Описание работы',
     },
     salon_longitude: {
       type: DataTypes.DECIMAL,
       allowNull: false,
-      defaultValue: 0
+      defaultValue: 0,
     },
     salon_latitude: {
       type: DataTypes.DECIMAL,
       allowNull: false,
-      defaultValue: 0
+      defaultValue: 0,
     },
     salon_name: {
       type: DataTypes.STRING(50),
       allowNull: false,
-      defaultValue: 'Название салона'
+      defaultValue: 'Название салона',
     },
     active_till: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: new Date()
+      defaultValue: new Date(),
     },
-})};
+  });
+};
