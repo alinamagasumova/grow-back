@@ -18,8 +18,6 @@ db.sequelize = sequelize;
 const m = sequelize.models;
 
 // client and master
-// m.Master.hasOne(m.Client, { foreignKey: { allowNull: false }, onDelete: 'cascade' });
-// m.Client.belongsTo(m.Master );
 m.Client.hasOne(m.Master, { onDelete: 'cascade' });
 m.Master.belongsTo(m.Client);
 
@@ -54,8 +52,8 @@ m.Master.hasMany(m.Calendar_slot, {
 m.Calendar_slot.belongsTo(m.Master);
 
 // master and dop
-m.Master.hasMany(m.Dop);
-m.Dop.belongsTo(m.Master);
+m.Master.belongsToMany(m.Dop, { through: 'master_dop' });
+m.Dop.belongsToMany(m.Master, { through: 'master_dop' });
 
 // service and master
 m.Master.hasMany(m.Service, { foreignKey: { allowNull: false } });

@@ -30,10 +30,5 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: false,
       defaultValue: 0,
     },
-    dop_config: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: 'Нет дополнительных покупок',
-    },
   });
 };

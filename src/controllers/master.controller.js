@@ -8,6 +8,41 @@ function status_handler(res, status, msg = '', err = false) {
   return res.status(status).json({ msg: msg });
 }
 
+async function checkLimit(id, subj) {
+  const this_master = await Master.findOne({ where: { id: id } });
+  const tariff = await this_master.getTariff();
+  let amount,
+    limit = 0,
+    service;
+  switch (subj) {
+    case 'service':
+      amount = await this_master.countServices();
+      for (service of await this_master.getServices()) {
+        amount += await service.countSubservices();
+      }
+      limit = tariff.service_limit;
+      break;
+    case 'product':
+      amount = await this_master.countProducts();
+      limit = tariff.product_limit;
+      break;
+    case 'photo':
+      amount = await this_master.countPhotos();
+      limit = tariff.photo_limit;
+      break;
+  }
+
+  const dops = await this_master.getDops();
+  dops.forEach((dop) => {
+    if (dop.dop_name == subj) {
+      limit += dop.dop_amount;
+    }
+  });
+
+  if (amount >= limit) return false;
+  return true;
+}
+
 class MasterController {
   // GET
   async tariff_state(req, res) {
@@ -36,6 +71,10 @@ class MasterController {
     try {
       const id = req.clientInfo.Master.id;
       const { service_name } = req.body;
+
+      const check = await checkLimit(id, 'service');
+      if (!check) return status_handler(res, 403, 'Can not add more services');
+
       const result = await Service.create({
         service_name: service_name,
         MasterId: id,
@@ -48,7 +87,11 @@ class MasterController {
 
   async create_subservice(req, res) {
     try {
+      const id = req.clientInfo.Master.id;
       const { subservice_name, price, id_service } = req.body;
+
+      const check = await checkLimit(id, 'service');
+      if (!check) return status_handler(res, 403, 'Can not add more services');
       const result = await Subservice.create({
         subservice_name: subservice_name,
         ServiceId: id_service,
@@ -64,11 +107,10 @@ class MasterController {
     try {
       const id = req.clientInfo.Master.id;
       const { product_name, description, price } = req.body;
-      const products = await Product.findAll({
-        where: { MasterId: id },
-        rawData: true,
-      });
-      console.log(products.length);
+
+      const check = await checkLimit(id, 'product');
+      if (!check) return status_handler(res, 403, 'Can not add more products');
+
       const result = await Product.create({
         product_name: product_name,
         MasterId: id,

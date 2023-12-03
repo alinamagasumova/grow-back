@@ -11,6 +11,9 @@ module.exports = function (sequelize, DataTypes) {
     product_price: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      validate: {
+        min: 1,
+      },
     },
   });
 };

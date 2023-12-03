@@ -1,13 +1,16 @@
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define('Dop', {
-    name: {
+    dop_name: {
       type: DataTypes.STRING(10),
       allowNull: false,
     },
-    paid: {
-      type: DataTypes.BOOLEAN,
+    dop_price: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: false,
+    },
+    dop_amount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
   });
 };

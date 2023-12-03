@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize');
-const { TARIFF_VALUES, PAY_STATUS_VALUES } = require('./models_config');
+const { TARIFF_VALUES, PAY_STATUS_VALUES, DOPS } = require('./models_config');
 
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
@@ -30,6 +30,13 @@ async function push_tariffs(tariff_model) {
   if (result) console.log(`tariffs pushed`);
 }
 
+async function push_dops(dop_model) {
+  const dops = await dop_model.findAll();
+  if (dops.length != 0) return;
+  const result = await dop_model.bulkCreate(DOPS);
+  if (result) console.log(`dops pushed`);
+}
+
 async function init(db) {
   db.sequelize
     .sync({ alter: true })
@@ -37,6 +44,7 @@ async function init(db) {
     .then(() => {
       push_statuses(sequelize.models.Tariff_status);
       push_tariffs(sequelize.models.Tariff);
+      push_dops(sequelize.models.Dop);
     })
     .catch((error) => console.log('unable to sync models:', error));
 }

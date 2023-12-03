@@ -19,7 +19,6 @@ app.use(helmet());
 app.use(cors());
 
 app.use(express.json());
-
 // routes
 app.use('/auth', auth_routes);
 app.use('/api', api_routes);
@@ -32,5 +31,5 @@ init(db);
 // support_init();
 // notification_init();
 
-app.set('host', process.env.HOST || 'localhost');
+// app.set('host', process.env.HOST || 'localhost');
 app.listen(process.env.PORT, () => console.log('server is running on host', app.get('host')));

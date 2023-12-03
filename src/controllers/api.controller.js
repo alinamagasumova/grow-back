@@ -12,7 +12,7 @@ function status_handler(res, status, msg = '', err = false) {
 class ApiController {
   async salon(req, res) {
     try {
-      const { id_master } = req.body;
+      const { id_master } = req.params;
       const master = await Master.findOne({
         where: { id: id_master },
         attributes: ['id', 'salon_name', 'salon_longitude', 'salon_latitude'],
@@ -48,7 +48,7 @@ class ApiController {
 
   async photo(req, res) {
     try {
-      const { id } = req.body;
+      const { id } = req.params;
       const result = await Photo.findOne({
         where: { id: id },
         attributes: ['photo'],
@@ -71,7 +71,7 @@ class ApiController {
 
   async rate(req, res) {
     try {
-      const { id_master } = req.body;
+      const { id_master } = req.params;
       const result = await Feedback.findAll({
         where: { MasterId: id_master },
         attributes: ['rate'],
@@ -92,7 +92,7 @@ class ApiController {
 
   async feedback(req, res) {
     try {
-      const { id_feedback } = req.body;
+      const { id_feedback } = req.params;
       const result = await Feedback.findOne({
         where: { id: id_feedback },
         rawData: true,
