@@ -28,7 +28,7 @@ function createJwt(client) {
 class AuthController {
   async registration(req, res) {
     try {
-      let { phone, name, email, password, isMaster } = req.body;
+      let { name, email, password, isMaster } = req.body;
       name = name.split(' ');
       password = password.replace(/ /g, '');
       if (!password && password.length < 5) status_handler(res, 411, 'Enter password');
@@ -38,7 +38,6 @@ class AuthController {
         first_name: name[0],
         last_name: name[1],
         email: email,
-        phone_number: phone,
         password: password,
       });
       if (resultClient && isMaster) {

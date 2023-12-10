@@ -13,7 +13,7 @@ module.exports = function (sequelize, DataTypes) {
       },
       phone_number: {
         type: DataTypes.STRING(12),
-        allowNull: false,
+        allowNull: true,
         unique: true,
         validate: {
           is: {
