@@ -3,8 +3,16 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix .",
+      "prettier --write",
+      "git add"
+    ]
+  },
   "scripts": {
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +29,12 @@
     "sequelize": "^6.33.0"
   },
   "devDependencies": {
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.1.0",
     "nodemon": "^3.0.1",
+    "prettier": "^3.1.0",
     "sequelize-cli": "^6.6.1"
   }
 }

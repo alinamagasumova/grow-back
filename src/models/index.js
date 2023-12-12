@@ -1,16 +1,15 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const {sequelize} = require('../../dbConfigs/db');
+const { sequelize } = require('../../dbConfigs/db');
 const path = require('path');
 const fs = require('fs');
 const db = {};
 
-fs.readdirSync(__dirname)
-    .forEach(file => {
-         let model = path.basename(file, '.js');
-         if (model != 'index') {
-             db.model = require(__dirname + '/' + model)(sequelize, DataTypes);
-         };
-     });
+fs.readdirSync(__dirname).forEach((file) => {
+  const model = path.basename(file, '.js');
+  if (model != 'index') {
+    db.model = require(__dirname + '/' + model)(sequelize, DataTypes);
+  }
+});
 
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
@@ -19,14 +18,12 @@ db.sequelize = sequelize;
 const m = sequelize.models;
 
 // client and master
-// m.Master.hasOne(m.Client, { foreignKey: { allowNull: false }, onDelete: 'cascade' });
-// m.Client.belongsTo(m.Master );
 m.Client.hasOne(m.Master, { onDelete: 'cascade' });
-m.Master.belongsTo(m.Client );
+m.Master.belongsTo(m.Client);
 
 // client and submaster
 m.Client.hasOne(m.Submaster, { onDelete: 'cascade' });
-m.Submaster.belongsTo(m.Client );
+m.Submaster.belongsTo(m.Client);
 
 // master and tariff
 m.Tariff.hasMany(m.Master);
@@ -41,16 +38,22 @@ m.Photo.hasOne(m.Master);
 m.Master.belongsTo(m.Photo);
 
 // product and master
-m.Master.hasMany(m.Product, { foreignKey: { allowNull: false }, onDelete: 'cascade' });
+m.Master.hasMany(m.Product, {
+  foreignKey: { allowNull: false },
+  onDelete: 'cascade',
+});
 m.Product.belongsTo(m.Master);
 
 // master and calendar slot
-m.Master.hasMany(m.Calendar_slot, { foreignKey: { allowNull: false }, onDelete: 'cascade' });
+m.Master.hasMany(m.Calendar_slot, {
+  foreignKey: { allowNull: false },
+  onDelete: 'cascade',
+});
 m.Calendar_slot.belongsTo(m.Master);
 
 // master and dop
-m.Master.hasMany(m.Dop)
-m.Dop.belongsTo(m.Master)
+m.Master.belongsToMany(m.Dop, { through: 'master_dop' });
+m.Dop.belongsToMany(m.Master, { through: 'master_dop' });
 
 // service and master
 m.Master.hasMany(m.Service, { foreignKey: { allowNull: false } });
@@ -73,8 +76,12 @@ m.Client.belongsToMany(m.Master, { through: 'favourites', as: 'favourite' });
 m.Master.belongsToMany(m.Client, { through: 'favourites', as: 'favourited' });
 
 // feedback
-m.Client.belongsToMany(m.Master, { through: { model: m.Feedback, unique: false} });
-m.Master.belongsToMany(m.Client, { through: { model: m.Feedback, unique: false} });
+m.Client.belongsToMany(m.Master, {
+  through: { model: m.Feedback, unique: false },
+});
+m.Master.belongsToMany(m.Client, {
+  through: { model: m.Feedback, unique: false },
+});
 
 // basket
 m.Product.belongsToMany(m.Appointment, { through: 'baskets' });

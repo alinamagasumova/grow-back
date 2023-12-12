@@ -1,7 +1,8 @@
 module.exports = function (sequelize, DataTypes) {
-    return sequelize.define('Photo', {
-        photo: {
-            type: DataTypes.BLOB,
-            allowNull: false
-        },
-})};
+  return sequelize.define('Photo', {
+    location: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  });
+};
