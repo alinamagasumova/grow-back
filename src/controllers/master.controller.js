@@ -47,8 +47,13 @@ class MasterController {
         try {
             const id = req.clientInfo.Master.id;
             const { product_name, description, price } = req.body;
-            const products = await Product.findAll({ where: { MasterId: id }, rawData: true });
-            console.log(products.length);
+            // check tariff
+            const master = await Master.findOne({ where: { id: id }, include: [ Tariff ], rawData: true });
+            const tariff_status = req.clientInfo.Master.TariffStatusId;
+            const product_limit = master.Tariff.dataValues.product_limit;
+            const products_amount = await master.countProducts();
+            if (products_amount >= product_limit && tariff_status == 1) return status_handler(res, 403, 'Your tariff does not allow to add more products');
+
             const result = await Product.create({ product_name: product_name, MasterId: id, product_price: price, product_description: description });
             if (result) return status_handler(res, 201, 'Created successfully')
         } catch (e) {
