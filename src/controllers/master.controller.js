@@ -66,6 +66,20 @@ class MasterController {
     }
   }
 
+  async appointments(req, res) {
+    try {
+      const id = req.clientInfo.Master.id;
+      const appointments = await Appointment.findAll({
+        where: { masterId: id },
+        raw: true,
+      });
+      if (!appointments) return status_handler(res, 404, 'No appointments');
+      return res.status(200).json(appointments);
+    } catch (e) {
+      return status_handler(res, 400, 'Get error', e);
+    }
+  }
+
   // POST
   async create_service(req, res) {
     try {
@@ -126,12 +140,13 @@ class MasterController {
   async create_slot(req, res) {
     try {
       const id = req.clientInfo.Master.id;
-      const { date, time } = req.body;
-      if (new Date(date) >= new Date().setHours(0)) {
-        if (time <= new Date().toLocaleTimeString()) return status_handler(res, 400, 'invalid Time');
-      } else {
-        return status_handler(res, 400, 'invalid Data');
-      }
+      let { date, time } = req.body;
+      console.log(Date.now());
+      console.log(new Date(date).setHours(time.split(':')[0]).setMinutes(time.split(':')[1]));
+      date = new Date(date).setHours(0);
+      const cur_date = new Date().setHours(0, 0, 0, 0);
+      if (date < cur_date) return status_handler(res, 400, 'Invalid Data');
+      if (date == cur_date && time <= new Date().toLocaleTimeString()) return status_handler(res, 400, 'Invalid Time');
       const result = await Calendar_slot.create({
         date: date,
         time: time,

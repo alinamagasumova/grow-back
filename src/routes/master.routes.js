@@ -4,12 +4,16 @@ const verify_token = require('../middleware/verify_token');
 
 // GET
 router.get('/tariff', verify_token, master.tariff_state);
+router.get('/appointments', verify_token, master.appointments);
 
 // POST
+// router.post('/photo', verify_token, master.create_photo);
+// router.post('/salonPhoto', verify_token, master.create_salon_photo);
 router.post('/service', verify_token, master.create_service);
 router.post('/slot', verify_token, master.create_slot);
 router.post('/subservice', verify_token, master.create_subservice);
 router.post('/product', verify_token, master.create_product);
+// router.post('/productPhoto', verify_token, master.create_product_photo);
 
 // PUT
 router.put('/salon', verify_token, master.update_salon);
@@ -21,8 +25,11 @@ router.put('/product', verify_token, master.update_product);
 
 // DELETE
 router.delete('/delete', verify_token, master.delete);
+// router.delete('/photo', verify_token, master.photo);
+// router.delete('/salonPhoto', verify_token, master.salonPhoto);
 router.delete('/appointment', verify_token, master.delete_appointment);
 router.delete('/product', verify_token, master.delete_product);
+// router.delete('/productPhoto', verify_token, master.delete_product_photo);
 router.delete('/service', verify_token, master.delete_service);
 router.delete('/subservice', verify_token, master.delete_subservice);
 router.delete('/slot', verify_token, master.delete_slot);

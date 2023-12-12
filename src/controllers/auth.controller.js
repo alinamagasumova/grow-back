@@ -54,18 +54,16 @@ class AuthController {
   async login_email(req, res) {
     try {
       const { email, password } = req.body;
-
       const this_client = await Client.findOne({
         where: { email: email.toLowerCase() },
         include: [Master, Submaster],
       });
       if (!this_client) return status_handler(res, 404, 'No sush user');
-
       const valid_password = bcrypt.compareSync(password, this_client.password);
       if (!valid_password) return status_handler(res, 400, 'Password incorrect');
 
       const access_token = createJwt(this_client);
-      return res.status(200).json({ access_token: access_token });
+      return res.status(200).json({ access_token: access_token, id_client: this_client.id });
     } catch (e) {
       status_handler(res, 401, 'Login error', e);
     }

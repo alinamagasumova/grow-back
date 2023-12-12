@@ -136,15 +136,13 @@ class ApiController {
   async month_statuses(req, res) {
     try {
       const { id_master, year, month } = req.body;
-      // prepare date
+      // prepare date (how may days in month)
       let day = 30;
       if ([1, 3, 5, 8, 10].includes(month)) day = 31;
       else if (month == 1) day = 28;
-      console.log([1, 3, 5, 8, 10].includes(month));
       const start_date = new Date(year, month - 1, 1);
       const end_date = new Date(year, month - 1, day);
       // find slots
-      const dates_with_slots = [];
       const dates = await Calendar_slot.findAll({
         where: {
           MasterId: id_master,
@@ -154,6 +152,8 @@ class ApiController {
         order: [['date', 'ASC']],
         rawData: true,
       });
+      // create array with existing date_slots
+      const dates_with_slots = [];
       for (let d of dates) {
         d = new Date(d.dataValues.date).getDate();
         if (!dates_with_slots.includes(d)) dates_with_slots.push(d);
