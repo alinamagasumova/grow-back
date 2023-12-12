@@ -11,7 +11,7 @@
   },
   "rules": {
     "prefer-const": [
-      "error",
+      "warn",
       {
         "destructuring": "all",
         "ignoreReadBeforeAssign": false

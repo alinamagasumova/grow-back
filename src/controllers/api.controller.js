@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const {
   models: { Photo, Master, Tariff, Feedback, Calendar_slot },
 } = require('../../dbConfigs/db').sequelize;
+
 function status_handler(res, status, msg = '', err = false) {
   if (err) {
     console.log(err);
