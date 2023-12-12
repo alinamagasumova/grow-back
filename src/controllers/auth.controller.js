@@ -63,7 +63,7 @@ class AuthController {
       if (!valid_password) return status_handler(res, 400, 'Password incorrect');
 
       const access_token = createJwt(this_client);
-      return res.status(200).json({ access_token: access_token, id_client: this_client.id });
+      return res.status(200).json({ access_token: access_token, id: this_client.id });
     } catch (e) {
       status_handler(res, 401, 'Login error', e);
     }

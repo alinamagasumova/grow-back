@@ -8,8 +8,56 @@ function status_handler(res, status, msg = '', err = false) {
   }
   return res.status(status).json({ msg: msg });
 }
+async function getSalonInfo(master) {
+  try {
+    const services = await master.getServices({
+      attributes: ['id', 'service_name'],
+    });
+    const services_subservices = [];
+    if (services.length > 0) {
+      for (const [idx, service] of services.entries()) {
+        services_subservices.push(service.dataValues);
+        services_subservices[idx].subservices = await service.getSubservices({
+          attributes: ['id', 'subservice_name', 'subservice_price'],
+          rawData: true,
+        });
+      }
+    }
+    const products = await master.getProducts({
+      attributes: ['id', 'product_name', 'product_price', 'product_description'],
+      rawData: true,
+    });
+
+    return {
+      salon: master.dataValues,
+      services: services_subservices,
+      products: products,
+    };
+  } catch (e) {
+    console.log(e);
+  }
+}
 
 class ApiController {
+  async salons(req, res) {
+    try {
+      const salons = [];
+      const masters = await Master.findAll({
+        attributes: ['id', 'salon_name', 'salon_longitude', 'salon_latitude'],
+        rawData: true,
+      });
+
+      for (const master of masters) {
+        const salon = await getSalonInfo(master);
+        salons.push(salon);
+      }
+
+      return res.status(200).json(salons);
+    } catch (e) {
+      status_handler(res, 400, 'GET error', e);
+    }
+  }
+
   async salon(req, res) {
     try {
       const { id_master } = req.params;
@@ -18,29 +66,7 @@ class ApiController {
         attributes: ['id', 'salon_name', 'salon_longitude', 'salon_latitude'],
         rawData: true,
       });
-      const services = await master.getServices({
-        attributes: ['id', 'service_name'],
-      });
-      const services_subservices = [];
-      if (services.length > 0) {
-        for (const [idx, service] of services.entries()) {
-          services_subservices.push(service.dataValues);
-          services_subservices[idx].subservices = await service.getSubservices({
-            attributes: ['id', 'subservice_name', 'subservice_price'],
-            rawData: true,
-          });
-        }
-      }
-      const products = await master.getProducts({
-        attributes: ['id', 'product_name', 'product_price', 'product_description'],
-        rawData: true,
-      });
-      const salon_info = {
-        salon: master,
-        services: services_subservices,
-        products: products,
-      };
-      if (master && services && products) return res.status(200).json(salon_info);
+      if (master) return res.status(200).json(await getSalonInfo(master));
     } catch (e) {
       status_handler(res, 400, 'GET error', e);
     }
@@ -158,13 +184,13 @@ class ApiController {
         d = new Date(d.dataValues.date).getDate();
         if (!dates_with_slots.includes(d)) dates_with_slots.push(d);
       }
-      if (dates) return res.status(200).json(dates_with_slots);
+      return res.status(200).json(dates_with_slots);
     } catch (e) {
       status_handler(res, 400, 'GET error', e);
     }
   }
 
-  async masters(req, res) {
+  async salons_location(req, res) {
     try {
       const { left_top, right_bottom } = req.body;
       const latitude_LT = left_top[0];
