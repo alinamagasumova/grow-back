@@ -11,6 +11,7 @@ function status_handler(res, status, msg = '', err = false) {
 async function checkLimit(id, subj) {
   const this_master = await Master.findOne({ where: { id: id } });
   const tariff = await this_master.getTariff();
+  if (this_master.TariffStatusId == 3) return false;
   let amount,
     limit = 0,
     service;
@@ -69,11 +70,21 @@ class MasterController {
   async appointments(req, res) {
     try {
       const id = req.clientInfo.Master.id;
-      const appointments = await Appointment.findAll({
-        where: { masterId: id },
-        raw: true,
+      const slots = await Calendar_slot.findAll({
+        where: { MasterId: id },
       });
-      if (!appointments) return status_handler(res, 404, 'No appointments');
+      const appointments = [];
+      if (slots.length == 0) return status_handler(res, 404, 'No slots');
+      for (const slot of slots) {
+        appointments.push(
+          await Appointment.findOne({
+            where: { CalendarSlotId: slot.id },
+            raw: true,
+          })
+        );
+      }
+
+      if (appointments.length == 0) return status_handler(res, 404, 'No appointments');
       return res.status(200).json(appointments);
     } catch (e) {
       return status_handler(res, 400, 'Get error', e);
@@ -85,9 +96,8 @@ class MasterController {
     try {
       const id = req.clientInfo.Master.id;
       const { service_name } = req.body;
-
       const check = await checkLimit(id, 'service');
-      if (!check) return status_handler(res, 403, 'Can not add more services');
+      if (!check) return status_handler(res, 403, 'Can not add more services or you tariff not active');
 
       const result = await Service.create({
         service_name: service_name,
@@ -103,9 +113,8 @@ class MasterController {
     try {
       const id = req.clientInfo.Master.id;
       const { subservice_name, price, id_service } = req.body;
-
       const check = await checkLimit(id, 'service');
-      if (!check) return status_handler(res, 403, 'Can not add more services');
+      if (!check) return status_handler(res, 403, 'Can not add more services or you tariff not active');
       const result = await Subservice.create({
         subservice_name: subservice_name,
         ServiceId: id_service,
@@ -123,7 +132,7 @@ class MasterController {
       const { product_name, description, price } = req.body;
 
       const check = await checkLimit(id, 'product');
-      if (!check) return status_handler(res, 403, 'Can not add more products');
+      if (!check) return status_handler(res, 403, 'Can not add more products or you tariff not active');
 
       const result = await Product.create({
         product_name: product_name,
@@ -141,9 +150,7 @@ class MasterController {
     try {
       const id = req.clientInfo.Master.id;
       let { date, time } = req.body;
-      console.log(Date.now());
-      console.log(new Date(date).setHours(time.split(':')[0]).setMinutes(time.split(':')[1]));
-      date = new Date(date).setHours(0);
+      date = new Date(date).setHours(0, 0, 0, 0);
       const cur_date = new Date().setHours(0, 0, 0, 0);
       if (date < cur_date) return status_handler(res, 400, 'Invalid Data');
       if (date == cur_date && time <= new Date().toLocaleTimeString()) return status_handler(res, 400, 'Invalid Time');

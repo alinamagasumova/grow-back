@@ -11,5 +11,8 @@ router.get('/dateSlots', api.date_slots);
 router.get('/monthStatuses', api.month_statuses);
 router.get('/salonsLocation', api.salons_location);
 router.get('/image/:id', api.photo);
+router.get('/subservice/:id', api.subservice);
+router.get('/clientInfo/:id', api.client);
+router.get('/slot/:id', api.slot);
 
 module.exports = router;

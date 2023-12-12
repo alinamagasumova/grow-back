@@ -1,6 +1,6 @@
 const { Support_request } = require('../../dbConfigs/support_db');
 const {
-  models: { Client, baskets, Appointment, favourites, Feedback, Master, Product, Subservice, Calendar_slot, Service },
+  models: { Client, baskets, Appointment, favourites, Feedback, Master, Product, Calendar_slot },
 } = require('../../dbConfigs/db').sequelize;
 function status_handler(res, status, msg = '', err = false) {
   if (err) {
@@ -57,19 +57,10 @@ class ClientController {
       const id = req.clientInfo.id;
       const appointments = await Appointment.findAll({
         where: { ClientId: id },
-        attributes: ['CalendarSlotId', 'id'],
+        attributes: ['id', 'CalendarSlotId'],
         rawData: true,
       });
-      const appointments_list = [];
-      for (const ap of appointments) {
-        const slot = await Calendar_slot.findOne({
-          where: { id: ap.CalendarSlotId },
-          attributes: ['date'],
-          rawData: true,
-        });
-        if (new Date(slot.date) >= new Date().setHours(0)) appointments_list.push(ap.id);
-      }
-      if (appointments) return res.status(200).json(appointments_list);
+      if (appointments) return res.status(200).json(appointments);
     } catch (e) {
       status_handler(res, 400, 'GET error', e);
     }
@@ -78,26 +69,12 @@ class ClientController {
   async appointment(req, res) {
     try {
       const id = req.clientInfo.id;
-      const { id_appointment } = req.body;
+      const { id_appointment } = req.params;
       const appointment = await Appointment.findOne({
         where: { id: id_appointment, ClientId: id },
         attributes: ['confirmed', 'CalendarSlotId', 'SubserviceId'],
         rawData: true,
       });
-      const slot = await Calendar_slot.findOne({
-        where: { id: appointment.CalendarSlotId },
-        attributes: ['date', 'time'],
-        include: [{ model: Master, attributes: ['salon_name'] }],
-        rawData: true,
-      });
-      const subservice = await Subservice.findOne({
-        where: { id: appointment.SubserviceId },
-        attributes: ['subservice_name', 'subservice_price'],
-        include: [{ model: Service, attributes: ['service_name'] }],
-        rawData: true,
-      });
-      appointment.CalendarSlotId = slot;
-      appointment.SubserviceId = subservice;
       if (appointment) return res.status(200).json(appointment);
     } catch (e) {
       status_handler(res, 400, 'GET error', e);

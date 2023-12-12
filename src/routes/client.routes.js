@@ -5,7 +5,7 @@ const verify_token = require('../middleware/verify_token');
 // GET
 router.get('/profile', verify_token, client.getData);
 router.get('/appointments', verify_token, client.appointments);
-router.get('/appointment', verify_token, client.appointment);
+router.get('/appointment/:id_appointment', verify_token, client.appointment);
 router.get('/favourites', verify_token, client.favourites);
 router.get('/basket', verify_token, client.basket);
 

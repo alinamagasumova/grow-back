@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const {
-  models: { Photo, Master, Tariff, Feedback, Calendar_slot },
+  models: { Photo, Master, Tariff, Feedback, Calendar_slot, Client, Subservice },
 } = require('../../dbConfigs/db').sequelize;
 
 function status_handler(res, status, msg = '', err = false) {
@@ -9,6 +9,7 @@ function status_handler(res, status, msg = '', err = false) {
   }
   return res.status(status).json({ msg: msg });
 }
+
 async function getSalonInfo(master) {
   try {
     const services = await master.getServices({
@@ -79,6 +80,46 @@ class ApiController {
       const result = await Photo.findOne({
         where: { id: id },
         attributes: ['photo'],
+        rawData: true,
+      });
+      if (result) return res.status(200).json(result);
+    } catch (e) {
+      status_handler(res, 400, 'GET error', e);
+    }
+  }
+
+  async subservice(req, res) {
+    try {
+      const { id } = req.params;
+      const result = await Subservice.findOne({
+        where: { id: id },
+        rawData: true,
+      });
+      if (result) return res.status(200).json(result);
+    } catch (e) {
+      status_handler(res, 400, 'GET error', e);
+    }
+  }
+
+  async client(req, res) {
+    try {
+      const { id } = req.params;
+      const result = await Client.findOne({
+        where: { id: id },
+        attributes: { exclude: ['password'] },
+        rawData: true,
+      });
+      if (result) return res.status(200).json(result);
+    } catch (e) {
+      status_handler(res, 400, 'GET error', e);
+    }
+  }
+
+  async slot(req, res) {
+    try {
+      const { id } = req.params;
+      const result = await Calendar_slot.findOne({
+        where: { id: id },
         rawData: true,
       });
       if (result) return res.status(200).json(result);
