@@ -31,5 +31,5 @@ init(db);
 // support_init();
 // notification_init();
 
-// app.set('host', process.env.HOST || 'localhost');
+app.set('host', process.env.HOST);
 app.listen(process.env.PORT, () => console.log('server is running on host', app.get('host')));

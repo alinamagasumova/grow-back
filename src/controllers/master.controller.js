@@ -168,11 +168,12 @@ class MasterController {
   // PUT
   async update_salon(req, res) {
     try {
-      // what about changing tariff_status and tariff, photos of salon
       const { data } = req.body;
       const id = req.clientInfo.Master.id;
+      if (!data || Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
       const result = await Master.update(data, { where: { id: id } });
-      if (result) return status_handler(res, 201, 'Updated successfully');
+      if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
+      return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
       status_handler(res, 400, 'PUT error', e);
     }
@@ -181,10 +182,12 @@ class MasterController {
   async update_service(req, res) {
     try {
       const { data, id_service } = req.body;
+      if (!data || Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
       const result = await Service.update(data, {
         where: { id: id_service },
       });
-      if (result) return status_handler(res, 201, 'Updated successfully');
+      if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
+      return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
       status_handler(res, 400, 'PUT error', e);
     }
@@ -193,10 +196,12 @@ class MasterController {
   async update_subservice(req, res) {
     try {
       const { data, id_subservice } = req.body;
+      if (!data || Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
       const result = await Subservice.update(data, {
         where: { id: id_subservice },
       });
-      if (result) return status_handler(res, 201, 'Updated successfully');
+      if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
+      return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
       status_handler(res, 400, 'PUT error', e);
     }
@@ -205,10 +210,12 @@ class MasterController {
   async update_product(req, res) {
     try {
       const { data, id_product } = req.body;
+      if (!data || Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
       const result = await Product.update(data, {
         where: { id: id_product },
       });
-      if (result) return status_handler(res, 201, 'Updated successfully');
+      if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
+      return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
       status_handler(res, 400, 'PUT error', e);
     }
@@ -217,10 +224,12 @@ class MasterController {
   async update_slot(req, res) {
     try {
       const { status, id_slot } = req.body;
+      if (!status) return status_handler(res, 400, 'There is no status');
       const result = await Calendar_slot.update(status, {
         where: { id: id_slot },
       });
-      if (result) return status_handler(res, 201, 'Updated successfully');
+      if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
+      return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
       status_handler(res, 400, 'PUT error', e);
     }
@@ -229,11 +238,13 @@ class MasterController {
   async update_appointment(req, res) {
     try {
       const { status, id_appointment } = req.body;
+      if (!status) return status_handler(res, 400, 'There is no status');
       const result = await Appointment.update(status, {
         where: { id: id_appointment },
       });
       // notificatiom for client
-      if (result) return status_handler(res, 201, 'Updated successfully');
+      if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
+      return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
       status_handler(res, 400, 'PUT error', e);
     }
