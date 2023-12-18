@@ -1,48 +1,7 @@
 const {
   models: { Master, Appointment, Product, Service, Subservice, Calendar_slot, Tariff_status, Tariff },
 } = require('../../dbConfigs/db').sequelize;
-function status_handler(res, status, msg = '', err = false) {
-  if (err) {
-    console.log(err);
-  }
-  return res.status(status).json({ msg: msg });
-}
-
-async function checkLimit(id, subj) {
-  const this_master = await Master.findOne({ where: { id: id } });
-  const tariff = await this_master.getTariff();
-  if (this_master.TariffStatusId == 3) return false;
-  let amount,
-    limit = 0,
-    service;
-  switch (subj) {
-    case 'service':
-      amount = await this_master.countServices();
-      for (service of await this_master.getServices()) {
-        amount += await service.countSubservices();
-      }
-      limit = tariff.service_limit;
-      break;
-    case 'product':
-      amount = await this_master.countProducts();
-      limit = tariff.product_limit;
-      break;
-    case 'photo':
-      amount = await this_master.countPhotos();
-      limit = tariff.photo_limit;
-      break;
-  }
-
-  const dops = await this_master.getDops();
-  dops.forEach((dop) => {
-    if (dop.dop_name == subj) {
-      limit += dop.dop_amount;
-    }
-  });
-
-  if (amount >= limit) return false;
-  return true;
-}
+const { status_handler, checkData, checkLimit } = require('../middleware/helpers');
 
 class MasterController {
   // GET
@@ -168,11 +127,20 @@ class MasterController {
   // PUT
   async update_salon(req, res) {
     try {
-      const { data } = req.body;
+      const body = req.body;
       const id = req.clientInfo.Master.id;
-      if (!data || Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
+
+      let data = {
+        salon_name: '',
+        salon_logitude: '',
+        salon_latitude: '',
+        job_description: '',
+      };
+      data = checkData(body, data);
+      if (Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
+
       const result = await Master.update(data, { where: { id: id } });
-      if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
+      if (result == 0) return status_handler(res, 400, 'No rows affected');
       return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
       status_handler(res, 400, 'PUT error', e);
@@ -181,11 +149,14 @@ class MasterController {
 
   async update_service(req, res) {
     try {
-      const { data, id_service } = req.body;
-      if (!data || Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
-      const result = await Service.update(data, {
-        where: { id: id_service },
-      });
+      const { service_name, id_service } = req.body;
+      if (!service_name) return status_handler(res, 400, 'There is no data');
+      const result = await Service.update(
+        { service_name: service_name },
+        {
+          where: { id: id_service },
+        }
+      );
       if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
       return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
@@ -195,8 +166,15 @@ class MasterController {
 
   async update_subservice(req, res) {
     try {
-      const { data, id_subservice } = req.body;
-      if (!data || Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
+      const body = req.body;
+      const id_subservice = req.body.id_subservice;
+      let data = {
+        subservice_name: '',
+        subservice_price: '',
+      };
+      data = checkData(body, data);
+      if (Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
+
       const result = await Subservice.update(data, {
         where: { id: id_subservice },
       });
@@ -209,8 +187,16 @@ class MasterController {
 
   async update_product(req, res) {
     try {
-      const { data, id_product } = req.body;
-      if (!data || Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
+      const body = req.body;
+      const id_product = req.body.id_product;
+      let data = {
+        product_name: '',
+        product_price: '',
+        product_description: '',
+      };
+      data = checkData(body, data);
+      if (Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
+
       const result = await Product.update(data, {
         where: { id: id_product },
       });

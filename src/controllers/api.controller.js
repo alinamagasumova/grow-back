@@ -2,43 +2,7 @@ const { Op } = require('sequelize');
 const {
   models: { Photo, Master, Tariff, Feedback, Calendar_slot, Client, Subservice },
 } = require('../../dbConfigs/db').sequelize;
-
-function status_handler(res, status, msg = '', err = false) {
-  if (err) {
-    console.log(err);
-  }
-  return res.status(status).json({ msg: msg });
-}
-
-async function getSalonInfo(master) {
-  try {
-    const services = await master.getServices({
-      attributes: ['id', 'service_name'],
-    });
-    const services_subservices = [];
-    if (services.length > 0) {
-      for (const [idx, service] of services.entries()) {
-        services_subservices.push(service.dataValues);
-        services_subservices[idx].subservices = await service.getSubservices({
-          attributes: ['id', 'subservice_name', 'subservice_price'],
-          rawData: true,
-        });
-      }
-    }
-    const products = await master.getProducts({
-      attributes: ['id', 'product_name', 'product_price', 'product_description'],
-      rawData: true,
-    });
-
-    return {
-      salon: master.dataValues,
-      services: services_subservices,
-      products: products,
-    };
-  } catch (e) {
-    console.log(e);
-  }
-}
+const { status_handler, getSalonInfo } = require('../middleware/helpers');
 
 class ApiController {
   async salons(req, res) {
@@ -53,7 +17,7 @@ class ApiController {
         const salon = await getSalonInfo(master);
         salons.push(salon);
       }
-
+      if (masters.length == 0) return status_handler(res, 404, 'no salons');
       return res.status(200).json(salons);
     } catch (e) {
       status_handler(res, 400, 'GET error', e);
@@ -63,12 +27,13 @@ class ApiController {
   async salon(req, res) {
     try {
       const { id_master } = req.params;
-      const master = await Master.findOne({
+      const result = await Master.findOne({
         where: { id: id_master },
         attributes: ['id', 'salon_name', 'salon_longitude', 'salon_latitude'],
         rawData: true,
       });
-      if (master) return res.status(200).json(await getSalonInfo(master));
+      if (result) return res.status(200).json(await getSalonInfo(result));
+      return status_handler(res, 404, 'No such salon');
     } catch (e) {
       status_handler(res, 400, 'GET error', e);
     }
@@ -83,6 +48,7 @@ class ApiController {
         rawData: true,
       });
       if (result) return res.status(200).json(result);
+      return status_handler(res, 404, 'No such photo');
     } catch (e) {
       status_handler(res, 400, 'GET error', e);
     }
@@ -96,6 +62,7 @@ class ApiController {
         rawData: true,
       });
       if (result) return res.status(200).json(result);
+      return status_handler(res, 404, 'No such subservice');
     } catch (e) {
       status_handler(res, 400, 'GET error', e);
     }
@@ -110,6 +77,7 @@ class ApiController {
         rawData: true,
       });
       if (result) return res.status(200).json(result);
+      return status_handler(res, 404, 'No such client');
     } catch (e) {
       status_handler(res, 400, 'GET error', e);
     }
@@ -123,6 +91,7 @@ class ApiController {
         rawData: true,
       });
       if (result) return res.status(200).json(result);
+      return status_handler(res, 404, 'No such slot');
     } catch (e) {
       status_handler(res, 400, 'GET error', e);
     }
@@ -166,6 +135,7 @@ class ApiController {
         rawData: true,
       });
       if (result) return res.status(200).json(result);
+      return status_handler(res, 404, 'No such feedback');
     } catch (e) {
       status_handler(res, 400, 'GET error', e);
     }
@@ -204,9 +174,9 @@ class ApiController {
   async month_statuses(req, res) {
     try {
       const { id_master, year, month } = req.body;
-      // prepare date (how may days in month)
+      // prepare date (how many days in month)
       let day = 30;
-      if ([1, 3, 5, 8, 10].includes(month)) day = 31;
+      if ([0, 3, 5, 8, 10].includes(month)) day = 31;
       else if (month == 1) day = 28;
       const start_date = new Date(year, month - 1, 1);
       const end_date = new Date(year, month - 1, day);

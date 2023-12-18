@@ -4,12 +4,7 @@ const {
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-function status_handler(res, status, msg = '', err = false) {
-  if (err) {
-    console.log(err);
-  }
-  return res.status(status).json({ msg: msg });
-}
+const { status_handler } = require('../middleware/helpers');
 
 function createJwt(client) {
   const keys = Object.keys(client.toJSON());

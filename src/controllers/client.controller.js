@@ -2,12 +2,7 @@ const { Support_request } = require('../../dbConfigs/support_db');
 const {
   models: { Client, baskets, Appointment, favourites, Feedback, Master, Product, Calendar_slot },
 } = require('../../dbConfigs/db').sequelize;
-function status_handler(res, status, msg = '', err = false) {
-  if (err) {
-    console.log(err);
-  }
-  return res.status(status).json({ msg: msg });
-}
+const { status_handler, checkData } = require('../middleware/helpers');
 
 class ClientController {
   // GET
@@ -192,21 +187,42 @@ class ClientController {
   // PUT
   async update_client(req, res) {
     try {
-      const { data } = req.body;
+      const body = req.body;
       const id = req.clientInfo.id;
+      let data = {
+        first_name: '',
+        last_name: '',
+        phone_number: '',
+        email: '',
+        city: '',
+      };
+      data = checkData(body, data);
+      if (Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
+
       const result = await Client.update(data, { where: { id: id } });
-      if (result) return status_handler(res, 201, 'Updated successfully');
+      if (result == 0) return status_handler(res, 400, 'No rows affected');
+      return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
       status_handler(res, 400, 'PUT error', e);
     }
   }
+
   async update_feedback(req, res) {
     try {
-      const { new_feedback, id_feedback } = req.body;
-      const result = await Feedback.update(new_feedback, {
+      const body = req.body;
+      const id_feedback = req.body.id_feedback;
+      let data = {
+        rate: '',
+        feedback_text: '',
+      };
+      data = checkData(body, data);
+      if (Object.entries(data).length == 0) return status_handler(res, 400, 'There is no data');
+
+      const result = await Feedback.update(data, {
         where: { id: id_feedback },
       });
-      if (result) return status_handler(res, 201, 'Updated successfully');
+      if (result == 0) return status_handler(res, 400, 'No rows affected');
+      return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
       status_handler(res, 400, 'PUT error', e);
     }
