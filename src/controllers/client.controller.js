@@ -1,12 +1,13 @@
 const { Support_request } = require('../../dbConfigs/support_db');
+const fs = require('fs');
 const {
-  models: { Client, baskets, Appointment, favourites, Feedback, Master, Product, Calendar_slot },
+  models: { Client, baskets, Appointment, favourites, Feedback, Master, Product, Calendar_slot, Photo },
 } = require('../../dbConfigs/db').sequelize;
 const { status_handler, checkData } = require('../middleware/helpers');
 
 class ClientController {
   // GET
-  async getData(req, res) {
+  async get_data(req, res) {
     try {
       const client = req.clientInfo;
       const keys = Object.keys(client);
@@ -167,6 +168,29 @@ class ClientController {
       if (result && basket_result && slot) return status_handler(res, 201, 'Made successfully');
     } catch (e) {
       status_handler(res, 400, 'Post error', e);
+    }
+  }
+
+  async add_photo(req, res) {
+    try {
+      const id = req.clientInfo.id;
+      const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
+      const client = await Client.findOne({ where: { id: id } });
+      let deletion = true;
+      const get_client_photo = await client.getPhoto();
+      if (get_client_photo) {
+        fs.unlink(req.file.path, (e) => {
+          if (e) return status_handler(res, 500, 'File was not deleted');
+          console.log('File deleted');
+        });
+        const delete_photo = await Photo.destroy({ where: { id: get_client_photo.id } });
+        if (!delete_photo) deletion = false;
+      }
+      const photo = await Photo.create({ location: location });
+      const set_client_photo = await client.setPhoto(photo);
+      if (photo && set_client_photo && deletion) return status_handler(res, 200, 'Added successfully');
+    } catch (e) {
+      status_handler(res, 400, 'POST error', e);
     }
   }
 

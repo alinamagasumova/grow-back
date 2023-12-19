@@ -33,10 +33,6 @@ m.Master.belongsTo(m.Tariff);
 m.Tariff_status.hasMany(m.Master);
 m.Master.belongsTo(m.Tariff_status);
 
-// photo and master
-m.Photo.hasOne(m.Master);
-m.Master.belongsTo(m.Photo);
-
 // product and master
 m.Master.hasMany(m.Product, {
   foreignKey: { allowNull: false },
@@ -102,9 +98,17 @@ m.Appointment.belongsTo(m.Calendar_slot, { foreignKey: { allowNull: false } });
 m.Appointment.belongsTo(m.Subservice, { foreignKey: { allowNull: false } });
 m.Subservice.hasMany(m.Appointment, { foreignKey: { allowNull: false } });
 
-// product photo
-m.Product.belongsToMany(m.Photo, { through: 'product_photo' });
-m.Photo.belongsToMany(m.Product, { through: 'product_photo' });
+// photo and master
+m.Photo.hasOne(m.Master);
+m.Master.belongsTo(m.Photo);
+
+// photo and client
+m.Photo.hasOne(m.Client);
+m.Client.belongsTo(m.Photo);
+
+// photo and product
+m.Photo.hasOne(m.Product);
+m.Product.belongsTo(m.Photo);
 
 // salon photo
 m.Master.belongsToMany(m.Photo, { through: 'salon_photo' });

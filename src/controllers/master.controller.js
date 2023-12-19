@@ -1,7 +1,8 @@
 const {
-  models: { Master, Appointment, Product, Service, Subservice, Calendar_slot, Tariff_status, Tariff },
+  models: { Master, Appointment, Product, Service, Subservice, Calendar_slot, Tariff_status, Tariff, Photo },
 } = require('../../dbConfigs/db').sequelize;
 const { status_handler, checkData, checkLimit } = require('../middleware/helpers');
+const fs = require('fs');
 
 class MasterController {
   // GET
@@ -123,6 +124,75 @@ class MasterController {
       return status_handler(res, 400, 'Post error', e);
     }
   }
+
+  async add_photo(req, res) {
+    try {
+      const id = req.clientInfo.Master.id;
+      const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
+      const master = await Master.findOne({ where: { id: id } });
+      let deletion = true;
+      const get_master_photo = await master.getPhoto();
+      if (get_master_photo) {
+        fs.unlink(req.file.path, (e) => {
+          if (e) return status_handler(res, 500, 'File was not deleted');
+          console.log('File deleted');
+        });
+        const delete_photo = await Photo.destroy({ where: { id: get_master_photo.id } });
+        if (!delete_photo) deletion = false;
+      }
+      const photo = await Photo.create({ location: location });
+      const set_master_photo = await master.setPhoto(photo);
+      if (photo && set_master_photo && deletion) return status_handler(res, 200, 'Added successfully');
+    } catch (e) {
+      status_handler(res, 400, 'POST error', e);
+    }
+  }
+
+  async add_product_photo(req, res) {
+    try {
+      const id = req.clientInfo.Master.id;
+      const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
+      const product = await Product.findOne({ where: { id: id } });
+      let deletion = true;
+      const get_product_photo = await product.getPhoto();
+      if (get_product_photo) {
+        fs.unlink(req.file.path, (e) => {
+          if (e) return status_handler(res, 500, 'File was not deleted');
+          console.log('File deleted');
+        });
+        const delete_photo = await Photo.destroy({ where: { id: get_product_photo.id } });
+        if (!delete_photo) deletion = false;
+      }
+      const photo = await Photo.create({ location: location });
+      const set_product_photo = await product.setPhoto(photo);
+      if (photo && set_product_photo && deletion) return status_handler(res, 200, 'Added successfully');
+    } catch (e) {
+      status_handler(res, 400, 'POST error', e);
+    }
+  }
+
+  // async add_salon_photo(req, res) {
+  //   try {
+  //     const id = req.clientInfo.Master.id;
+  //     const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
+  //     const product = await Product.findOne({ where: { id: id } });
+  //     let deletion = true;
+  //     const get_product_photo = await product.getPhoto();
+  //     if (get_product_photo) {
+  //       fs.unlink(req.file.path, e => {
+  //         if (e) return status_handler(res, 500, 'File was not deleted');
+  //         console.log('File deleted');
+  //       });
+  //       const delete_photo = await Photo.destroy({where: { id: get_product_photo.id }});
+  //       if (!delete_photo) deletion = false;
+  //     }
+  //     const photo = await Photo.create({ location: location });
+  //     const set_product_photo = await product.setPhoto(photo);
+  //     if (photo && set_product_photo && deletion) return status_handler(res, 200, 'Added successfully');
+  //   } catch (e) {
+  //     status_handler(res, 400, 'POST error', e);
+  //   }
+  // }
 
   // PUT
   async update_salon(req, res) {
