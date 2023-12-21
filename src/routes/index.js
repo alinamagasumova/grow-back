@@ -3,6 +3,7 @@ const { api } = require('../controllers');
 
 router.get('/salons', api.salons);
 router.get('/salon/:id_master', api.salon);
+router.get('/tariffInfo/:id_master', api.tariff_info);
 router.get('/tariffs', api.tariffs);
 router.get('/masterRate/:id_master', api.rate);
 router.get('/feedback/:id', api.feedback);
@@ -14,5 +15,6 @@ router.get('/image/:id', api.photo);
 router.get('/subservice/:id', api.subservice);
 router.get('/clientInfo/:id', api.client);
 router.get('/slot/:id', api.slot);
+router.get('/product/:id', api.product);
 
 module.exports = router;

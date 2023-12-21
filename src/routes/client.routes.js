@@ -23,8 +23,8 @@ router.put('/update', verify_token, client.update_client);
 
 // DELETE
 router.delete('/delete', verify_token, client.delete);
-router.delete('/appointment', verify_token, client.delete_appointment);
-router.delete('/feedback', verify_token, client.delete_feedback);
-router.delete('/master', verify_token, client.delete_master);
+router.delete('/appointment/:id', verify_token, client.delete_appointment);
+router.delete('/feedback/:id', verify_token, client.delete_feedback);
+router.delete('/master/:id_master', verify_token, client.delete_master);
 
 module.exports = router;

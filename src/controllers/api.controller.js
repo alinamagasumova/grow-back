@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const {
-  models: { Photo, Master, Tariff, Feedback, Calendar_slot, Client, Subservice },
+  models: { Photo, Master, Tariff, Feedback, Calendar_slot, Client, Subservice, Product },
 } = require('../../dbConfigs/db').sequelize;
 const { status_handler, getSalonInfo } = require('../middleware/helpers');
 
@@ -14,13 +14,13 @@ class ApiController {
       });
 
       for (const master of masters) {
-        const salon = await getSalonInfo(master);
+        const salon = getSalonInfo(master);
         salons.push(salon);
       }
       if (masters.length == 0) return status_handler(res, 404, 'no salons');
       return res.status(200).json(salons);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -29,13 +29,28 @@ class ApiController {
       const { id_master } = req.params;
       const result = await Master.findOne({
         where: { id: id_master },
-        attributes: ['id', 'salon_name', 'salon_longitude', 'salon_latitude'],
+        attributes: { exclude: ['TariffId', 'TariffStatusId', 'active_till', 'ClientId'] },
         rawData: true,
       });
-      if (result) return res.status(200).json(await getSalonInfo(result));
+      if (result) return res.status(200).json(getSalonInfo(result));
       return status_handler(res, 404, 'No such salon');
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
+    }
+  }
+
+  async tariff_info(req, res) {
+    try {
+      const { id_master } = req.params;
+      const result = await Master.findOne({
+        where: { id: id_master },
+        attributes: { attributes: ['id', 'TariffId', 'TariffStatusId', 'active_till'] },
+        rawData: true,
+      });
+      if (result) return res.status(200).json(result);
+      return status_handler(res, 404, 'No such master');
+    } catch (e) {
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -50,7 +65,7 @@ class ApiController {
       if (result) return res.status(200).json(result);
       return status_handler(res, 404, 'No such photo');
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -64,7 +79,21 @@ class ApiController {
       if (result) return res.status(200).json(result);
       return status_handler(res, 404, 'No such subservice');
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
+    }
+  }
+
+  async product(req, res) {
+    try {
+      const { id } = req.params;
+      const result = await Product.findOne({
+        where: { id: id },
+        rawData: true,
+      });
+      if (result) return res.status(200).json(result);
+      return status_handler(res, 404, 'No such product');
+    } catch (e) {
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -79,7 +108,7 @@ class ApiController {
       if (result) return res.status(200).json(result);
       return status_handler(res, 404, 'No such client');
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -93,7 +122,7 @@ class ApiController {
       if (result) return res.status(200).json(result);
       return status_handler(res, 404, 'No such slot');
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -102,7 +131,7 @@ class ApiController {
       const result = await Tariff.findAll({ rawData: true });
       if (result) return res.status(200).json(result);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -123,7 +152,7 @@ class ApiController {
       }
       if (result) return res.status(200).json(avgRate);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -137,7 +166,7 @@ class ApiController {
       if (result) return res.status(200).json(result);
       return status_handler(res, 404, 'No such feedback');
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -153,7 +182,7 @@ class ApiController {
       });
       if (feedbacks) return res.status(200).json(feedbacks);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -167,7 +196,7 @@ class ApiController {
       });
       if (result) return res.status(200).json(result);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -198,7 +227,7 @@ class ApiController {
       }
       return res.status(200).json(dates_with_slots);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -230,7 +259,7 @@ class ApiController {
       if (result.length == 0) return status_handler(res, 404, 'no salons');
       if (result) return res.status(200).json(result);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 }

@@ -19,6 +19,7 @@ app.use(helmet());
 app.use(cors());
 
 app.use(express.json());
+app.use(express.static('uploads'));
 // routes
 app.use('/auth', auth_routes);
 app.use('/api', api_routes);

@@ -42,7 +42,7 @@ class AuthController {
       if (resultClient && resultMaster) return status_handler(res, 201, 'Created successfully');
     } catch (e) {
       if (e.name == 'SequelizeValidationError') return status_handler(res, 406, e.errors[0].message);
-      status_handler(res, 401, 'Registration error', e);
+      status_handler(res, 401, 'Registration error', e.message);
     }
   }
 
@@ -61,7 +61,7 @@ class AuthController {
       const master_id = this_client.Master ? this_client.Master.id : null;
       return res.status(200).json({ access_token: access_token, id: this_client.id, master_id: master_id });
     } catch (e) {
-      status_handler(res, 401, 'Login error', e);
+      status_handler(res, 401, 'Login error', e.message);
     }
   }
 
@@ -82,7 +82,7 @@ class AuthController {
       const secretHash = `${hash}.${expires}`;
       return status_handler(res, 200, secretHash);
     } catch (e) {
-      status_handler(res, 401, 'Login error', e);
+      status_handler(res, 401, 'Login error', e.message);
     }
   }
 
@@ -101,7 +101,7 @@ class AuthController {
       const newCalculatedHash = crypto.createHmac('sha32', process.env.HASH_KEY).update(data).digest('hex');
       if (newCalculatedHash === hashValue) return res.status(200).json({ access_token: createJwt(this_client) });
     } catch (e) {
-      status_handler(res, 401, 'Invalid OTP. Please try again', e);
+      status_handler(res, 401, 'Invalid OTP. Please try again', e.message);
     }
   }
 }

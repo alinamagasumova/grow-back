@@ -1,9 +1,8 @@
 const { Support_request } = require('../../dbConfigs/support_db');
-const fs = require('fs');
 const {
   models: { Client, baskets, Appointment, favourites, Feedback, Master, Product, Calendar_slot, Photo },
 } = require('../../dbConfigs/db').sequelize;
-const { status_handler, checkData } = require('../middleware/helpers');
+const { status_handler, checkData, deleteFile, checkMasterPhotoDelete } = require('../middleware/helpers');
 
 class ClientController {
   // GET
@@ -20,7 +19,7 @@ class ClientController {
       });
       if (client) return res.status(200).json(data);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -44,7 +43,7 @@ class ClientController {
       });
       return res.status(200).json(parsed_data);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -58,7 +57,7 @@ class ClientController {
       });
       if (appointments) return res.status(200).json(appointments);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -73,7 +72,7 @@ class ClientController {
       });
       if (appointment) return res.status(200).json(appointment);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -92,7 +91,7 @@ class ClientController {
       });
       if (basket_elements) return res.status(200).json(basket_elements.Products);
     } catch (e) {
-      status_handler(res, 400, 'GET error', e);
+      status_handler(res, 400, 'GET error', e.message);
     }
   }
 
@@ -109,7 +108,7 @@ class ClientController {
       });
       if (result) return status_handler(res, 201, 'Added successfully');
     } catch (e) {
-      status_handler(res, 400, 'Post error', e);
+      status_handler(res, 400, 'Post error', e.message);
     }
   }
 
@@ -127,7 +126,7 @@ class ClientController {
       });
       if (result) return status_handler(res, 201, 'Added successfully');
     } catch (e) {
-      status_handler(res, 400, 'Post error', e);
+      status_handler(res, 400, 'Post error', e.message);
     }
   }
 
@@ -167,7 +166,7 @@ class ClientController {
       // notification to master
       if (result && basket_result && slot) return status_handler(res, 201, 'Made successfully');
     } catch (e) {
-      status_handler(res, 400, 'Post error', e);
+      status_handler(res, 400, 'Post error', e.message);
     }
   }
 
@@ -176,21 +175,19 @@ class ClientController {
       const id = req.clientInfo.id;
       const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
       const client = await Client.findOne({ where: { id: id } });
-      let deletion = true;
-      const get_client_photo = await client.getPhoto();
-      if (get_client_photo) {
-        fs.unlink(req.file.path, (e) => {
-          if (e) return status_handler(res, 500, 'File was not deleted');
-          console.log('File deleted');
-        });
-        const delete_photo = await Photo.destroy({ where: { id: get_client_photo.id } });
-        if (!delete_photo) deletion = false;
+      const client_photo = await client.getPhoto();
+      if (client_photo) {
+        let path = client_photo.location.split('/');
+        path = path[path.length - 1];
+        deleteFile(res, path, client_photo.id);
       }
+
       const photo = await Photo.create({ location: location });
-      const set_client_photo = await client.setPhoto(photo);
-      if (photo && set_client_photo && deletion) return status_handler(res, 200, 'Added successfully');
+      await client.setPhoto(photo);
+      return status_handler(res, 200, 'Added successfully');
     } catch (e) {
-      status_handler(res, 400, 'POST error', e);
+      deleteFile(res, req.file.path);
+      status_handler(res, 400, 'POST error', e.message);
     }
   }
 
@@ -204,7 +201,7 @@ class ClientController {
       });
       if (result) return res.status(201).json(result);
     } catch (e) {
-      status_handler(res, 400, 'POST error', e);
+      status_handler(res, 400, 'POST error', e.message);
     }
   }
 
@@ -227,7 +224,7 @@ class ClientController {
       if (result == 0) return status_handler(res, 400, 'No rows affected');
       return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
-      status_handler(res, 400, 'PUT error', e);
+      status_handler(res, 400, 'PUT error', e.message);
     }
   }
 
@@ -248,7 +245,7 @@ class ClientController {
       if (result == 0) return status_handler(res, 400, 'No rows affected');
       return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
-      status_handler(res, 400, 'PUT error', e);
+      status_handler(res, 400, 'PUT error', e.message);
     }
   }
 
@@ -256,19 +253,30 @@ class ClientController {
   async delete(req, res) {
     try {
       const id = req.clientInfo.id;
+      const client = await Client.findOne({ where: { id: id } });
+
+      const photo = await client.getPhoto();
+      if (photo) {
+        let path = photo.location.split('/');
+        path = path[path.length - 1];
+        deleteFile(res, path, photo.id);
+      }
+
+      if (req.clientInfo.Master.id) checkMasterPhotoDelete(req, res);
+
       const result = await Client.destroy({
         where: { id: id },
         onDelete: 'cascade ',
       });
       if (result) return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
-      status_handler(res, 400, 'Delete error', e);
+      status_handler(res, 400, 'Delete error', e.message);
     }
   }
 
   async delete_appointment(req, res) {
     try {
-      const { id_appointment } = req.body;
+      const id_appointment = req.params;
       const appointment = await Appointment.findOne({
         where: { id: id_appointment },
         attributes: ['CalendarSlotId'],
@@ -281,26 +289,26 @@ class ClientController {
       // notification for master
       if (result && slot) return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
-      status_handler(res, 400, 'Delete error', e);
+      status_handler(res, 400, 'Delete error', e.message);
     }
   }
 
   async delete_feedback(req, res) {
     try {
-      const { id_feedback } = req.body;
+      const id_feedback = req.params;
       const result = await Feedback.destroy({
         where: { id: id_feedback },
       });
       if (result) return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
-      status_handler(res, 400, 'Delete error', e);
+      status_handler(res, 400, 'Delete error', e.message);
     }
   }
 
   async delete_master(req, res) {
     try {
       const id = req.clientInfo.id;
-      const { id_master } = req.body;
+      const id_master = req.params;
       if (req.clientInfo.Master && req.clientInfo.Master.id == id_master)
         return status_handler(res, 400, 'You can not choose an id of yours');
       const result = await favourites.destroy({
@@ -308,7 +316,7 @@ class ClientController {
       });
       if (result) return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
-      status_handler(res, 400, 'Delete error', e);
+      status_handler(res, 400, 'Delete error', e.message);
     }
   }
 }

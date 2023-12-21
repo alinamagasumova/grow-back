@@ -14,7 +14,7 @@ router.post('/service', verify_token, master.create_service);
 router.post('/slot', verify_token, master.create_slot);
 router.post('/subservice', verify_token, master.create_subservice);
 router.post('/product', verify_token, master.create_product);
-router.post('/productPhoto', verify_token, upload.single('productPhoto'), master.add_product_photo);
+router.post('/productPhoto/:id', verify_token, upload.single('productPhoto'), master.add_product_photo);
 
 // PUT
 router.put('/salon', verify_token, master.update_salon);
@@ -27,10 +27,10 @@ router.put('/product', verify_token, master.update_product);
 // DELETE
 router.delete('/delete', verify_token, master.delete);
 // router.delete('/salonPhoto/:id', verify_token, master.delete_salonPhoto);
-router.delete('/appointment', verify_token, master.delete_appointment);
-router.delete('/product', verify_token, master.delete_product);
-router.delete('/service', verify_token, master.delete_service);
-router.delete('/subservice', verify_token, master.delete_subservice);
-router.delete('/slot', verify_token, master.delete_slot);
+router.delete('/appointment/:id', verify_token, master.delete_appointment);
+router.delete('/product/:id', verify_token, master.delete_product);
+router.delete('/service/:id', verify_token, master.delete_service);
+router.delete('/subservice/:id', verify_token, master.delete_subservice);
+router.delete('/slot/:id', verify_token, master.delete_slot);
 
 module.exports = router;

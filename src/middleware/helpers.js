@@ -1,6 +1,8 @@
 const {
-  models: { Master },
+  models: { Master, Photo },
 } = require('../../dbConfigs/db').sequelize;
+const fs = require('fs');
+
 function status_handler(res, status, msg = '', err = false) {
   return res.status(status).json({ msg: msg, err: err });
 }
@@ -69,7 +71,7 @@ async function getSalonInfo(master) {
       }
     }
     const products = await master.getProducts({
-      attributes: ['id', 'product_name', 'product_price', 'product_description'],
+      attributes: { exclude: ['MasterId'] },
       rawData: true,
     });
 
@@ -83,4 +85,38 @@ async function getSalonInfo(master) {
   }
 }
 
-module.exports = { status_handler, checkData, checkLimit, getSalonInfo };
+async function deleteFile(res, path, id = null) {
+  fs.unlink(path, (e) => {
+    if (e) {
+      status_handler(res, 500, 'POST error', e.message);
+      return false;
+    }
+    console.log('File deleted');
+    return true;
+  });
+  if (id) await Photo.destroy({ where: { id: id } });
+}
+
+async function checkMasterPhotoDelete(req, res) {
+  const master = await Master.findOne({ where: { id: req.clientInfo.Master.id } });
+  const master_photo = await master.getPhoto();
+  if (master_photo) {
+    let master_path = master_photo.location.split('/');
+    master_path = master_path[master_path.length - 1];
+    deleteFile(res, master_path, master_photo.id);
+  }
+
+  const products = await master.getProducts({ attributes: ['PhotoId'] });
+  if (products) {
+    for (const product of products) {
+      if (product.PhotoId) {
+        const product_photo = await Photo.findOne({ where: { id: product.PhotoId } });
+        let product_path = product_photo.location.split('/');
+        product_path = product_path[product_path.length - 1];
+        deleteFile(res, product_path, product_photo.id);
+      }
+    }
+  }
+}
+
+module.exports = { status_handler, checkData, checkLimit, getSalonInfo, deleteFile, checkMasterPhotoDelete };

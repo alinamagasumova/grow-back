@@ -1,4 +1,5 @@
 const multer = require('multer');
+const crc32 = require('crc32');
 const file_types = {
   'image/png': 'png',
   'image/jpeg': 'jpeg',
@@ -13,9 +14,9 @@ const storage = multer.diskStorage({
     cb(uploadError, 'uploads/');
   },
   filename: (req, file, cb) => {
-    const filename = file.originalname.replace(' ', '-');
+    const filename = crc32(`${file.originalname}-${Date.now()}`);
     const extension = file_types[file.mimetype];
-    cb(null, `${filename}-${Date.now()}.${extension}`);
+    cb(null, `${filename}.${extension}`);
   },
 });
 

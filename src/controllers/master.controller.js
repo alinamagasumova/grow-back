@@ -1,8 +1,7 @@
 const {
   models: { Master, Appointment, Product, Service, Subservice, Calendar_slot, Tariff_status, Tariff, Photo },
 } = require('../../dbConfigs/db').sequelize;
-const { status_handler, checkData, checkLimit } = require('../middleware/helpers');
-const fs = require('fs');
+const { status_handler, checkData, checkLimit, deleteFile } = require('../middleware/helpers');
 
 class MasterController {
   // GET
@@ -23,7 +22,7 @@ class MasterController {
       if (!tariff) tariff = { tariff: 'none' };
       if (status_result && tariff) return res.status(200).json(Object.assign(tariff, status_result));
     } catch (e) {
-      return status_handler(res, 400, 'Get error', e);
+      return status_handler(res, 400, 'Get error', e.message);
     }
   }
 
@@ -47,7 +46,7 @@ class MasterController {
       if (appointments.length == 0) return status_handler(res, 404, 'No appointments');
       return res.status(200).json(appointments);
     } catch (e) {
-      return status_handler(res, 400, 'Get error', e);
+      return status_handler(res, 400, 'Get error', e.message);
     }
   }
 
@@ -56,7 +55,7 @@ class MasterController {
     try {
       const id = req.clientInfo.Master.id;
       const { service_name } = req.body;
-      const check = await checkLimit(id, 'service');
+      const check = checkLimit(id, 'service');
       if (!check) return status_handler(res, 403, 'Can not add more services or you tariff not active');
 
       const result = await Service.create({
@@ -65,7 +64,7 @@ class MasterController {
       });
       if (result) return status_handler(res, 201, 'Created successfully');
     } catch (e) {
-      return status_handler(res, 400, 'Post error', e);
+      return status_handler(res, 400, 'Post error', e.message);
     }
   }
 
@@ -73,7 +72,7 @@ class MasterController {
     try {
       const id = req.clientInfo.Master.id;
       const { subservice_name, price, id_service } = req.body;
-      const check = await checkLimit(id, 'service');
+      const check = checkLimit(id, 'service');
       if (!check) return status_handler(res, 403, 'Can not add more services or you tariff not active');
       const result = await Subservice.create({
         subservice_name: subservice_name,
@@ -82,7 +81,7 @@ class MasterController {
       });
       if (result) return status_handler(res, 201, 'Created successfully');
     } catch (e) {
-      return status_handler(res, 400, 'Post error', e);
+      return status_handler(res, 400, 'Post error', e.message);
     }
   }
 
@@ -91,7 +90,7 @@ class MasterController {
       const id = req.clientInfo.Master.id;
       const { product_name, description, price } = req.body;
 
-      const check = await checkLimit(id, 'product');
+      const check = checkLimit(id, 'product');
       if (!check) return status_handler(res, 403, 'Can not add more products or you tariff not active');
 
       const result = await Product.create({
@@ -102,7 +101,7 @@ class MasterController {
       });
       if (result) return status_handler(res, 201, 'Created successfully');
     } catch (e) {
-      return status_handler(res, 400, 'Post error', e);
+      return status_handler(res, 400, 'Post error', e.message);
     }
   }
 
@@ -121,7 +120,7 @@ class MasterController {
       });
       if (result) return status_handler(res, 201, 'Created successfully');
     } catch (e) {
-      return status_handler(res, 400, 'Post error', e);
+      return status_handler(res, 400, 'Post error', e.message);
     }
   }
 
@@ -130,44 +129,41 @@ class MasterController {
       const id = req.clientInfo.Master.id;
       const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
       const master = await Master.findOne({ where: { id: id } });
-      let deletion = true;
-      const get_master_photo = await master.getPhoto();
-      if (get_master_photo) {
-        fs.unlink(req.file.path, (e) => {
-          if (e) return status_handler(res, 500, 'File was not deleted');
-          console.log('File deleted');
-        });
-        const delete_photo = await Photo.destroy({ where: { id: get_master_photo.id } });
-        if (!delete_photo) deletion = false;
+      const master_photo = await master.getPhoto();
+      if (master_photo) {
+        let path = master_photo.location.split('/');
+        path = path[path.length - 1];
+        deleteFile(res, path, master_photo.id);
       }
+
       const photo = await Photo.create({ location: location });
-      const set_master_photo = await master.setPhoto(photo);
-      if (photo && set_master_photo && deletion) return status_handler(res, 200, 'Added successfully');
+      await master.setPhoto(photo);
+      return status_handler(res, 200, 'Added successfully');
     } catch (e) {
-      status_handler(res, 400, 'POST error', e);
+      deleteFile(res, req.file.path);
+      status_handler(res, 400, 'POST error', e.message);
     }
   }
 
   async add_product_photo(req, res) {
     try {
       const id = req.clientInfo.Master.id;
+      const id_product = req.params.id;
       const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
-      const product = await Product.findOne({ where: { id: id } });
-      let deletion = true;
-      const get_product_photo = await product.getPhoto();
-      if (get_product_photo) {
-        fs.unlink(req.file.path, (e) => {
-          if (e) return status_handler(res, 500, 'File was not deleted');
-          console.log('File deleted');
-        });
-        const delete_photo = await Photo.destroy({ where: { id: get_product_photo.id } });
-        if (!delete_photo) deletion = false;
+      const product = await Product.findOne({ where: { MasterId: id, id: id_product } });
+      const product_photo = await product.getPhoto();
+      if (product_photo) {
+        let path = product_photo.location.split('/');
+        path = path[path.length - 1];
+        deleteFile(res, path, product_photo.id);
       }
+
       const photo = await Photo.create({ location: location });
-      const set_product_photo = await product.setPhoto(photo);
-      if (photo && set_product_photo && deletion) return status_handler(res, 200, 'Added successfully');
+      await product.setPhoto(photo);
+      return status_handler(res, 200, 'Added successfully');
     } catch (e) {
-      status_handler(res, 400, 'POST error', e);
+      deleteFile(res, req.file.path);
+      status_handler(res, 400, 'POST error', e.message);
     }
   }
 
@@ -179,7 +175,7 @@ class MasterController {
   //     let deletion = true;
   //     const get_product_photo = await product.getPhoto();
   //     if (get_product_photo) {
-  //       fs.unlink(req.file.path, e => {
+  //       fs.unlink(req.file.path, e.message => {
   //         if (e) return status_handler(res, 500, 'File was not deleted');
   //         console.log('File deleted');
   //       });
@@ -190,7 +186,7 @@ class MasterController {
   //     const set_product_photo = await product.setPhoto(photo);
   //     if (photo && set_product_photo && deletion) return status_handler(res, 200, 'Added successfully');
   //   } catch (e) {
-  //     status_handler(res, 400, 'POST error', e);
+  //     status_handler(res, 400, 'POST error', e.message);
   //   }
   // }
 
@@ -213,7 +209,7 @@ class MasterController {
       if (result == 0) return status_handler(res, 400, 'No rows affected');
       return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
-      status_handler(res, 400, 'PUT error', e);
+      status_handler(res, 400, 'PUT error', e.message);
     }
   }
 
@@ -230,7 +226,7 @@ class MasterController {
       if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
       return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
-      status_handler(res, 400, 'PUT error', e);
+      status_handler(res, 400, 'PUT error', e.message);
     }
   }
 
@@ -251,7 +247,7 @@ class MasterController {
       if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
       return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
-      status_handler(res, 400, 'PUT error', e);
+      status_handler(res, 400, 'PUT error', e.message);
     }
   }
 
@@ -273,7 +269,7 @@ class MasterController {
       if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
       return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
-      status_handler(res, 400, 'PUT error', e);
+      status_handler(res, 400, 'PUT error', e.message);
     }
   }
 
@@ -287,7 +283,7 @@ class MasterController {
       if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
       return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
-      status_handler(res, 400, 'PUT error', e);
+      status_handler(res, 400, 'PUT error', e.message);
     }
   }
 
@@ -302,7 +298,7 @@ class MasterController {
       if (result == 0) return status_handler(res, 400, 'No rows affected, data is invalid');
       return status_handler(res, 201, `Updated successfully, rows affected: ${result[0]}`);
     } catch (e) {
-      status_handler(res, 400, 'PUT error', e);
+      status_handler(res, 400, 'PUT error', e.message);
     }
   }
 
@@ -310,73 +306,93 @@ class MasterController {
   async delete(req, res) {
     try {
       const id = req.clientInfo.Master.id;
+      const master = await Master.findOne({ where: { id: id } });
+
+      const photo = await master.getPhoto();
+      if (photo) {
+        let path = photo.location.split('/');
+        path = path[path.length - 1];
+        deleteFile(res, path, photo.id);
+      }
+
       const result = await Master.destroy({ where: { id: id } });
       if (result) return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
-      return status_handler(res, 400, 'Delete error', e);
+      return status_handler(res, 400, 'Delete error', e.message);
     }
   }
 
   async delete_appointment(req, res) {
     try {
-      const { id_appointment } = req.body;
+      const id = req.params.id;
       const appointment = await Appointment.findOne({
-        where: { id: id_appointment },
+        where: { id: id },
         attributes: ['CalendarSlotId'],
         rawData: true,
       });
       const result = await Appointment.destroy({
-        where: { id: id_appointment },
+        where: { id: id },
       });
       const slot = await Calendar_slot.update({ busy: false }, { where: { id: appointment.CalendarSlotId } });
       // notification for client
       if (result && slot) return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
-      status_handler(res, 400, 'Delete error', e);
+      status_handler(res, 400, 'Delete error', e.message);
     }
   }
 
   async delete_product(req, res) {
     try {
-      const { id_product } = req.body;
-      const result = await Product.destroy({ where: { id: id_product } });
+      const id = req.params.id;
+      const id_master = req.clientInfo.Master.id;
+      const product = await Product.findOne({ where: { id: id, MasterId: id_master } });
+      if (!product) return status_handler(res, 400, 'No such product', 'Id of product is incorrect');
+
+      const photo = await product.getPhoto();
+      if (photo) {
+        let path = photo.location.split('/');
+        path = path[path.length - 1];
+        deleteFile(res, path, photo.id);
+      }
+
+      const result = await Product.destroy({ where: { id: id } });
       if (result) return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
-      status_handler(res, 400, 'Delete error', e);
+      status_handler(res, 400, 'Delete error', e.message);
     }
   }
 
   async delete_service(req, res) {
     try {
-      const { id_service } = req.body;
-      const result = await Service.destroy({ where: { id: id_service } });
+      const id = req.params.id;
+      const result = await Service.destroy({ where: { id: id } });
       if (result) return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
-      status_handler(res, 400, 'Delete error', e);
+      status_handler(res, 400, 'Delete error', e.message);
     }
   }
 
   async delete_subservice(req, res) {
     try {
-      const { id_subservice } = req.body;
+      const id = req.params.id;
       const result = await Subservice.destroy({
-        where: { id: id_subservice },
+        where: { id: id },
       });
       if (result) return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
-      status_handler(res, 400, 'Delete error', e);
+      status_handler(res, 400, 'Delete error', e.message);
     }
   }
 
   async delete_slot(req, res) {
     try {
-      const { id_slot } = req.body;
+      const id = req.params.id;
       const result = await Calendar_slot.destroy({
-        where: { id: id_slot },
+        where: { id: id },
       });
       if (result) return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
-      status_handler(res, 400, 'Delete error', e);
+      status_handler(res, 400, 'Delete error', e.message);
     }
   }
 }
