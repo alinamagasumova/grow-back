@@ -14,7 +14,7 @@ class ApiController {
       });
 
       for (const master of masters) {
-        const salon = getSalonInfo(master);
+        const salon = await getSalonInfo(master);
         salons.push(salon);
       }
       if (masters.length == 0) return status_handler(res, 404, 'no salons');
@@ -32,7 +32,7 @@ class ApiController {
         attributes: { exclude: ['TariffId', 'TariffStatusId', 'active_till', 'ClientId'] },
         rawData: true,
       });
-      if (result) return res.status(200).json(getSalonInfo(result));
+      if (result) return res.status(200).json(await getSalonInfo(result));
       return status_handler(res, 404, 'No such salon');
     } catch (e) {
       status_handler(res, 400, 'GET error', e.message);

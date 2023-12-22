@@ -175,18 +175,19 @@ class ClientController {
       const id = req.clientInfo.id;
       const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
       const client = await Client.findOne({ where: { id: id } });
+
       const client_photo = await client.getPhoto();
       if (client_photo) {
         let path = client_photo.location.split('/');
         path = path[path.length - 1];
-        deleteFile(res, path, client_photo.id);
+        await deleteFile(res, path, client_photo.id);
       }
 
       const photo = await Photo.create({ location: location });
       await client.setPhoto(photo);
       return status_handler(res, 200, 'Added successfully');
     } catch (e) {
-      deleteFile(res, req.file.path);
+      await deleteFile(res, req.file.path);
       status_handler(res, 400, 'POST error', e.message);
     }
   }
@@ -259,10 +260,10 @@ class ClientController {
       if (photo) {
         let path = photo.location.split('/');
         path = path[path.length - 1];
-        deleteFile(res, path, photo.id);
+        await deleteFile(res, path, photo.id);
       }
 
-      if (req.clientInfo.Master.id) checkMasterPhotoDelete(req, res);
+      if (await client.getMaster()) await checkMasterPhotoDelete(req, res);
 
       const result = await Client.destroy({
         where: { id: id },

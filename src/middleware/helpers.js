@@ -89,25 +89,27 @@ async function deleteFile(res, path, id = null) {
   fs.unlink(path, (e) => {
     if (e) {
       status_handler(res, 500, 'POST error', e.message);
-      return false;
+      return;
     }
     console.log('File deleted');
-    return true;
   });
   if (id) await Photo.destroy({ where: { id: id } });
 }
 
 async function checkMasterPhotoDelete(req, res) {
   const master = await Master.findOne({ where: { id: req.clientInfo.Master.id } });
-  const master_photo = await master.getPhoto();
-  if (master_photo) {
+  if (!master) return;
+
+  if (master.PhotoId) {
+    const master_photo = await master.getPhoto();
     let master_path = master_photo.location.split('/');
     master_path = master_path[master_path.length - 1];
     deleteFile(res, master_path, master_photo.id);
   }
 
-  const products = await master.getProducts({ attributes: ['PhotoId'] });
-  if (products) {
+  const products = await master.getProducts();
+
+  if (products.length > 0) {
     for (const product of products) {
       if (product.PhotoId) {
         const product_photo = await Photo.findOne({ where: { id: product.PhotoId } });

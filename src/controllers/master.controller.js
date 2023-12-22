@@ -1,7 +1,7 @@
 const {
   models: { Master, Appointment, Product, Service, Subservice, Calendar_slot, Tariff_status, Tariff, Photo },
 } = require('../../dbConfigs/db').sequelize;
-const { status_handler, checkData, checkLimit, deleteFile } = require('../middleware/helpers');
+const { status_handler, checkData, checkLimit, deleteFile, checkMasterPhotoDelete } = require('../middleware/helpers');
 
 class MasterController {
   // GET
@@ -55,7 +55,7 @@ class MasterController {
     try {
       const id = req.clientInfo.Master.id;
       const { service_name } = req.body;
-      const check = checkLimit(id, 'service');
+      const check = await checkLimit(id, 'service');
       if (!check) return status_handler(res, 403, 'Can not add more services or you tariff not active');
 
       const result = await Service.create({
@@ -72,7 +72,7 @@ class MasterController {
     try {
       const id = req.clientInfo.Master.id;
       const { subservice_name, price, id_service } = req.body;
-      const check = checkLimit(id, 'service');
+      const check = await checkLimit(id, 'service');
       if (!check) return status_handler(res, 403, 'Can not add more services or you tariff not active');
       const result = await Subservice.create({
         subservice_name: subservice_name,
@@ -90,7 +90,7 @@ class MasterController {
       const id = req.clientInfo.Master.id;
       const { product_name, description, price } = req.body;
 
-      const check = checkLimit(id, 'product');
+      const check = await checkLimit(id, 'product');
       if (!check) return status_handler(res, 403, 'Can not add more products or you tariff not active');
 
       const result = await Product.create({
@@ -133,14 +133,14 @@ class MasterController {
       if (master_photo) {
         let path = master_photo.location.split('/');
         path = path[path.length - 1];
-        deleteFile(res, path, master_photo.id);
+        await deleteFile(res, path, master_photo.id);
       }
 
       const photo = await Photo.create({ location: location });
       await master.setPhoto(photo);
       return status_handler(res, 200, 'Added successfully');
     } catch (e) {
-      deleteFile(res, req.file.path);
+      await deleteFile(res, req.file.path);
       status_handler(res, 400, 'POST error', e.message);
     }
   }
@@ -155,14 +155,14 @@ class MasterController {
       if (product_photo) {
         let path = product_photo.location.split('/');
         path = path[path.length - 1];
-        deleteFile(res, path, product_photo.id);
+        await deleteFile(res, path, product_photo.id);
       }
 
       const photo = await Photo.create({ location: location });
       await product.setPhoto(photo);
       return status_handler(res, 200, 'Added successfully');
     } catch (e) {
-      deleteFile(res, req.file.path);
+      await deleteFile(res, req.file.path);
       status_handler(res, 400, 'POST error', e.message);
     }
   }
@@ -306,15 +306,7 @@ class MasterController {
   async delete(req, res) {
     try {
       const id = req.clientInfo.Master.id;
-      const master = await Master.findOne({ where: { id: id } });
-
-      const photo = await master.getPhoto();
-      if (photo) {
-        let path = photo.location.split('/');
-        path = path[path.length - 1];
-        deleteFile(res, path, photo.id);
-      }
-
+      await checkMasterPhotoDelete(req, res);
       const result = await Master.destroy({ where: { id: id } });
       if (result) return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
@@ -352,7 +344,7 @@ class MasterController {
       if (photo) {
         let path = photo.location.split('/');
         path = path[path.length - 1];
-        deleteFile(res, path, photo.id);
+        await await deleteFile(res, path, photo.id);
       }
 
       const result = await Product.destroy({ where: { id: id } });
