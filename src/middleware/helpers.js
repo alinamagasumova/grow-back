@@ -19,32 +19,36 @@ function checkData(body, data) {
   return data;
 }
 
-async function checkLimit(id, subj) {
-  const this_master = await Master.findOne({ where: { id: id } });
-  const tariff = await this_master.getTariff();
-  if (this_master.TariffStatusId == 3) return false;
+async function checkLimit(id, subj, cond = false) {
+  const master = await Master.findOne({ where: { id: id } });
+  const tariff = await master.getTariff();
+  if (!tariff || master.TariffStatusId == 3) return false;
   let amount,
-    limit = 0,
-    service;
+    limit = 0;
   switch (subj) {
     case 'service':
-      amount = await this_master.countServices();
-      for (service of await this_master.getServices()) {
+      amount = await master.countServices();
+      for (const service of await master.getServices()) {
         amount += await service.countSubservices();
       }
       limit = tariff.service_limit;
       break;
     case 'product':
-      amount = await this_master.countProducts();
+      amount = await master.countProducts();
       limit = tariff.product_limit;
       break;
     case 'photo':
-      amount = await this_master.countPhotos();
+      if (await master.getPhoto()) amount = 1;
+      for (const product of await master.getProducts()) {
+        if (await product.getPhoto()) amount += 1;
+      }
+      amount += await master.countPhotos();
+      if (cond) amount -= 1;
       limit = tariff.photo_limit;
       break;
   }
 
-  const dops = await this_master.getDops();
+  const dops = await master.getDops();
   dops.forEach((dop) => {
     if (dop.dop_name == subj) {
       limit += dop.dop_amount;

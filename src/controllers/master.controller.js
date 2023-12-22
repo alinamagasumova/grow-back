@@ -130,6 +130,14 @@ class MasterController {
       const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
       const master = await Master.findOne({ where: { id: id } });
       const master_photo = await master.getPhoto();
+
+      let check;
+      master_photo ? (check = await checkLimit(id, 'photo', true)) : (check = await checkLimit(id, 'photo'));
+      if (!check) {
+        await deleteFile(res, req.file.path);
+        return status_handler(res, 403, 'Can not add more photos or you tariff not active');
+      }
+
       if (master_photo) {
         let path = master_photo.location.split('/');
         path = path[path.length - 1];
@@ -152,6 +160,14 @@ class MasterController {
       const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
       const product = await Product.findOne({ where: { MasterId: id, id: id_product } });
       const product_photo = await product.getPhoto();
+
+      let check;
+      product_photo ? (check = await checkLimit(id, 'photo', true)) : (check = await checkLimit(id, 'photo'));
+      if (!check) {
+        await deleteFile(res, req.file.path);
+        return status_handler(res, 403, 'Can not add more photos or you tariff not active');
+      }
+
       if (product_photo) {
         let path = product_photo.location.split('/');
         path = path[path.length - 1];
@@ -184,8 +200,9 @@ class MasterController {
   //     }
   //     const photo = await Photo.create({ location: location });
   //     const set_product_photo = await product.setPhoto(photo);
-  //     if (photo && set_product_photo && deletion) return status_handler(res, 200, 'Added successfully');
+  //     return status_handler(res, 200, 'Added successfully');
   //   } catch (e) {
+  // await deleteFile(res, req.file.path);
   //     status_handler(res, 400, 'POST error', e.message);
   //   }
   // }
