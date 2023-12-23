@@ -124,35 +124,6 @@ class MasterController {
     }
   }
 
-  async add_photo(req, res) {
-    try {
-      const id = req.clientInfo.Master.id;
-      const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
-      const master = await Master.findOne({ where: { id: id } });
-      const master_photo = await master.getPhoto();
-
-      let check;
-      master_photo ? (check = await checkLimit(id, 'photo', true)) : (check = await checkLimit(id, 'photo'));
-      if (!check) {
-        await deleteFile(res, req.file.path);
-        return status_handler(res, 403, 'Can not add more photos or you tariff not active');
-      }
-
-      if (master_photo) {
-        let path = master_photo.location.split('/');
-        path = path[path.length - 1];
-        await deleteFile(res, path, master_photo.id);
-      }
-
-      const photo = await Photo.create({ location: location });
-      await master.setPhoto(photo);
-      return status_handler(res, 200, 'Added successfully');
-    } catch (e) {
-      await deleteFile(res, req.file.path);
-      status_handler(res, 400, 'POST error', e.message);
-    }
-  }
-
   async add_product_photo(req, res) {
     try {
       const id = req.clientInfo.Master.id;
@@ -183,29 +154,26 @@ class MasterController {
     }
   }
 
-  // async add_salon_photo(req, res) {
-  //   try {
-  //     const id = req.clientInfo.Master.id;
-  //     const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
-  //     const product = await Product.findOne({ where: { id: id } });
-  //     let deletion = true;
-  //     const get_product_photo = await product.getPhoto();
-  //     if (get_product_photo) {
-  //       fs.unlink(req.file.path, e.message => {
-  //         if (e) return status_handler(res, 500, 'File was not deleted');
-  //         console.log('File deleted');
-  //       });
-  //       const delete_photo = await Photo.destroy({where: { id: get_product_photo.id }});
-  //       if (!delete_photo) deletion = false;
-  //     }
-  //     const photo = await Photo.create({ location: location });
-  //     const set_product_photo = await product.setPhoto(photo);
-  //     return status_handler(res, 200, 'Added successfully');
-  //   } catch (e) {
-  // await deleteFile(res, req.file.path);
-  //     status_handler(res, 400, 'POST error', e.message);
-  //   }
-  // }
+  async add_salon_photo(req, res) {
+    try {
+      const id = req.clientInfo.Master.id;
+      const location = `${req.protocol}://${req.get('host')}/${req.file.path}`;
+      const salon = await Master.findOne({ where: { id: id } });
+
+      const check = await checkLimit(id, 'photo');
+      if (!check) {
+        await deleteFile(res, req.file.path);
+        return status_handler(res, 403, 'Can not add more photos or you tariff not active');
+      }
+
+      const photo = await Photo.create({ location: location });
+      await salon.addPhoto(photo);
+      return status_handler(res, 200, 'Added successfully');
+    } catch (e) {
+      await deleteFile(res, req.file.path);
+      status_handler(res, 400, 'POST error', e.message);
+    }
+  }
 
   // PUT
   async update_salon(req, res) {
@@ -361,11 +329,25 @@ class MasterController {
       if (photo) {
         let path = photo.location.split('/');
         path = path[path.length - 1];
-        await await deleteFile(res, path, photo.id);
+        await deleteFile(res, path, photo.id);
       }
 
       const result = await Product.destroy({ where: { id: id } });
       if (result) return status_handler(res, 200, 'Deleted successfully');
+    } catch (e) {
+      status_handler(res, 400, 'Delete error', e.message);
+    }
+  }
+
+  async delete_salonPhoto(req, res) {
+    try {
+      const id = req.params.id;
+      const photo = await Photo.findOne({ where: { id: id } });
+      if (!photo) return status_handler(res, 400, 'No such photo', 'Id of photo is incorrect');
+      let path = photo.location.split('/');
+      path = path[path.length - 1];
+      await deleteFile(res, path, photo.id);
+      return status_handler(res, 200, 'Deleted successfully');
     } catch (e) {
       status_handler(res, 400, 'Delete error', e.message);
     }

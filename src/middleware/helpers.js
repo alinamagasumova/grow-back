@@ -38,16 +38,14 @@ async function checkLimit(id, subj, cond = false) {
       limit = tariff.product_limit;
       break;
     case 'photo':
-      if (await master.getPhoto()) amount = 1;
+      amount = await master.countPhotos();
       for (const product of await master.getProducts()) {
         if (await product.getPhoto()) amount += 1;
       }
-      amount += await master.countPhotos();
       if (cond) amount -= 1;
       limit = tariff.photo_limit;
       break;
   }
-
   const dops = await master.getDops();
   dops.forEach((dop) => {
     if (dop.dop_name == subj) {
@@ -79,10 +77,13 @@ async function getSalonInfo(master) {
       rawData: true,
     });
 
+    const photos = await master.getPhotos({ attributes: ['id'] });
+
     return {
       salon: master.dataValues,
       services: services_subservices,
       products: products,
+      photos: photos,
     };
   } catch (e) {
     console.log(e);
@@ -95,7 +96,6 @@ async function deleteFile(res, path, id = null) {
       status_handler(res, 500, 'POST error', e.message);
       return;
     }
-    console.log('File deleted');
   });
   if (id) await Photo.destroy({ where: { id: id } });
 }
@@ -104,15 +104,16 @@ async function checkMasterPhotoDelete(req, res) {
   const master = await Master.findOne({ where: { id: req.clientInfo.Master.id } });
   if (!master) return;
 
-  if (master.PhotoId) {
-    const master_photo = await master.getPhoto();
-    let master_path = master_photo.location.split('/');
-    master_path = master_path[master_path.length - 1];
-    deleteFile(res, master_path, master_photo.id);
+  const photos = await master.getPhotos();
+  if (photos.length > 0) {
+    for (const photo of photos) {
+      let salon_path = photo.location.split('/');
+      salon_path = salon_path[salon_path.length - 1];
+      deleteFile(res, salon_path, photo.id);
+    }
   }
 
   const products = await master.getProducts();
-
   if (products.length > 0) {
     for (const product of products) {
       if (product.PhotoId) {

@@ -98,10 +98,6 @@ m.Appointment.belongsTo(m.Calendar_slot, { foreignKey: { allowNull: false } });
 m.Appointment.belongsTo(m.Subservice, { foreignKey: { allowNull: false } });
 m.Subservice.hasMany(m.Appointment, { foreignKey: { allowNull: false } });
 
-// photo and master
-m.Photo.hasOne(m.Master);
-m.Master.belongsTo(m.Photo);
-
 // photo and client
 m.Photo.hasOne(m.Client);
 m.Client.belongsTo(m.Photo);
